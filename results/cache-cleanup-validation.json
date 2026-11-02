@@ -1,0 +1,50 @@
+{
+  "runs": [
+    {
+      "cleanup_cache": false,
+      "success": true,
+      "frames": 56,
+      "audio_decodes": true,
+      "new_cache_directories_retained": 1,
+      "saved_file": "cleanup-smoke_00001_.mp4"
+    },
+    {
+      "cleanup_cache": true,
+      "success": true,
+      "frames": 56,
+      "audio_decodes": true,
+      "new_cache_directories_retained": 0,
+      "saved_file": "cleanup-smoke_00002_.mp4"
+    },
+    {
+      "cleanup_cache": true,
+      "success": true,
+      "frames": 56,
+      "audio_decodes": true,
+      "new_cache_directories_retained": 0,
+      "saved_file": "cleanup-smoke_00003_.mp4"
+    }
+  ],
+  "repeat_with_same_executor": true,
+  "fixture": "Synthetic CPU latents and VAE, actual native loop/export/save nodes; no H3 inference.",
+  "unit_tests_passed": 18,
+  "unit_test_scope": "No real person media; CPU-generated video/audio fixtures, disk scope and failure/cancellation checks.",
+  "source_sha256": {
+    "save_video.py": "bbcd460f8c8e1b1b828672f9bd1436223bd7138e182aca9807a68086bf6da640",
+    "__init__.py": "69fc280d2187b91b5b443fc98a9bfde998faf5277d159d4418f6ae3d9af50233",
+    "benchmarks/verify_cleanup.py": "b123e9a60751836c114b9aad8b764e8841286a56062db86505617c9c8e437987",
+    "tests/test_cleanup.py": "937b0943aadd7b5838ca86d7925fee92945bd204d4c7dc41b4d41c101e5a0abf"
+  },
+  "native_workflow_validation": {
+    "H3-TextureLab-CharacterSwap-768-CacheCleanup.api.json": {
+      "valid": true,
+      "error": null,
+      "node_errors": {}
+    },
+    "H3-TextureLab-CharacterSwap-480-CacheCleanup.api.json": {
+      "valid": true,
+      "error": null,
+      "node_errors": {}
+    }
+  }
+}

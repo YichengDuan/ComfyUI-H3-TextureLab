@@ -48,6 +48,7 @@ Import a workflow from [examples](examples). Start with:
 |---|---|
 | **Video + character image, 480 preset** | **`H3-TextureLab-CharacterSwap-480.json`** |
 | **Video + character image, 768 preset** | **`H3-TextureLab-CharacterSwap-768.json`** |
+| Video + image, optional cache cleanup | `H3-TextureLab-CharacterSwap-480-CacheCleanup.json` / `...768-CacheCleanup.json` |
 | Single-image component: native latent carry | `H3-TextureLab-Simple.json` |
 | Reference refresh + join correction | `H3-TextureLab-Simple-Refine.json` |
 | Full-body motion, 480-pixel short edge | `H3-TextureLab-Motion-480-Refine.json` |
@@ -110,7 +111,13 @@ Refinement uses the main schedule's final interval, plain original-reference con
 
 If this output/cache directory is on an SSD, these writes contribute to SSD wear. This project has not measured long-term SSD endurance impact. Keep sufficient free space and consider the write workload when choosing the output drive; storage speed can also affect caching and export time.
 
-**Completed run caches are not automatically deleted.** After verifying that the final saved video is stored outside that cache directory and confirming that no active generation, continuation or recovery needs a run's files, you can manually delete that run's cache directory. Do not delete caches used by a running job. Cleanup reclaims disk space; it does not undo writes already performed.
+**Caches are retained by default.** For optional automatic cleanup, use `H3TextureSaveVideo` ("Save Video & Optional Cache Cleanup") after `H3TextureFinishVideo`, connecting both the finished video and the same End Loop state. The new `H3-TextureLab-CharacterSwap-480-CacheCleanup.json` and `...768-CacheCleanup.json` examples include this node. Set its **`cleanup_cache`** switch to **true** to opt in; its default is **false**.
+
+The node saves an MP4 outside the cache directory, decodes every saved video frame and audio stream, checks the frame count/canvas/frame rate and audio-stream presence, then deletes only that completed run's recognized cache files. It returns a video pointing to the saved delivery, so playback still works after cleanup. Save/verification failure or cancellation before cleanup preserves the cache. Unknown files, symlinks or a mismatched manifest cause cleanup to be skipped and reported. Other run directories and model caches are untouched.
+
+Use this as the terminal save for that run. Keep cleanup disabled if another branch, continuation, recovery or later re-export still needs its cached latents or assembled video; success of this save does not certify unrelated workflow branches. Existing workflows are unchanged and can keep using standard Save Video without automatic cleanup. The examples retain native Start Loop execution so later runs build fresh cache state.
+
+You can also manually remove a completed run's cache after verifying that its final video is stored outside that directory and no active work needs its files. Cleanup reclaims space; it does **not** undo SSD writes already performed.
 
 ## Important limits
 

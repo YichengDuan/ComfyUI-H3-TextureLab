@@ -4,6 +4,7 @@ from safetensors.torch import load_file
 from .storage import append_window,H3TextureFinishVideo
 from .planning import window_plan
 from .source_window import H3TextureSourceWindow
+from .save_video import H3TextureSaveVideo
 from .low_vram import H3TextureLowVRAM
 from .performance import NODE_CLASS_MAPPINGS as PERFORMANCE_NODES
 from comfy_api.latest import io
@@ -99,5 +100,5 @@ class H3TextureAppendWindow(io.ComfyNode):
 
 NODE_CLASS_MAPPINGS={c.__name__:c for c in (H3TextureWindowPlan,H3TextureMotionGuide,H3TextureAppendWindow,H3TextureSourceWindow)}
 
-NODE_CLASS_MAPPINGS.update({c.__name__:c for c in (H3TextureFinishVideo,H3TextureLowVRAM)})
+NODE_CLASS_MAPPINGS.update({c.__name__:c for c in (H3TextureFinishVideo,H3TextureLowVRAM,H3TextureSaveVideo)})
 NODE_CLASS_MAPPINGS.update(PERFORMANCE_NODES)

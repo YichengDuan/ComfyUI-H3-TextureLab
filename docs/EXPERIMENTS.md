@@ -129,3 +129,21 @@ PCIe256MiB synchronous transfers:3070Ti activePCIe3×16 pageableH2D31.717ms /8.4
 Unit fixtures cover window arithmetic, cropped tails, exact AV save/load, overlap trimming, cross-window history reads, owned RGB storage and path containment. Native API validation is separate from those stubs. Real GPU execution must also be distinguished from validation-only graphs. Existing workflow hashes are checked separately; all new examples have new names.
 
 The most important remaining tests are longer **Character Swap** clips, fast motion, occlusions, multiple people, camera movement, difficult masks, identity changes viewed frame by frame, real source speech/audio and matched human ratings. More context can increase memory use, and correcting global statistics can erase legitimate lighting changes. This is an experimental toolkit, not a universal texture-stability guarantee.
+
+
+## Optional cache cleanup — 2026-11-02
+
+Added `H3TextureSaveVideo`, a terminal save/output node with `cleanup_cache=false` by default. The existing finish node and original workflows are unchanged. New `CharacterSwap-480-CacheCleanup` / `768-CacheCleanup` examples connect the finish video and the same End Loop state to the save node.
+
+The node saves to a temporary MP4 outside the cache, fully decodes its video and audio, checks delivered frame count, dimensions, 24fps and audio-stream presence, then publishes the saved delivery before optional deletion. Cleanup accepts only this run's UUID directory directly under the configured cache root, a matching completed manifest and recognized regular files. Unknown files, links and mismatched manifests skip deletion. It does not purge model caches, scan old runs or certify unrelated branches; leave it off when the state is still needed elsewhere.
+
+Validation: 18 unit tests passed, including default-off retention, successful per-run deletion, a neighboring run remaining intact, failed save, truncated video, lost audio, cancellation, an output inside the cache, mismatched source video, unknown files, symlinks, an unrelated directory and mismatched manifest. A native ComfyUI CPU fixture exercised actual Start/End Loop, AV disk storage, audio-bearing streaming export and the new save node. Three fresh requests through the same executor used cleanup off/on/on: each delivered a new 56-frame MP4 with decodable audio; only the off case retained its new cache. This is synthetic CPU export/cleanup validation, not a new H3 generation or quality benchmark.
+
+Reproduce using ComfyUI's Python:
+
+```sh
+python -m unittest discover -s tests -v
+python benchmarks/verify_cleanup.py --comfy-root /path/to/ComfyUI --output /path/to/cleanup-smoke
+```
+
+Machine-readable results: [cache-cleanup-validation.json](../results/cache-cleanup-validation.json). Cleanup reclaims space after writes have occurred; it does not reduce SSD write volume.

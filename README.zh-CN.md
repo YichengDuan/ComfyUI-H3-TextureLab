@@ -15,7 +15,7 @@
 
 ## 现在用哪个
 
-导入 `examples/H3-TextureLab-CharacterSwap-480.json`，需要更大画面再使用 `H3-TextureLab-CharacterSwap-768.json`。这两份都是新建工作流，不覆盖已有工作流。安装 H3 Relay、Motion Context 和本节点包；将 `examples/inputs` 的测试图片和视频复制到 ComfyUI/input，或在工作流中选择自己的输入。模型另行下载。
+导入 `examples/H3-TextureLab-CharacterSwap-480.json`，需要更大画面再使用 `H3-TextureLab-CharacterSwap-768.json`。这两份都是新建工作流，不覆盖已有工作流。可选自动清理使用新增的 `H3-TextureLab-CharacterSwap-480-CacheCleanup.json` 或 `...768-CacheCleanup.json`，开关默认关闭。安装 H3 Relay、Motion Context 和本节点包；将 `examples/inputs` 的测试图片和视频复制到 ComfyUI/input，或在工作流中选择自己的输入。模型另行下载。
 
 它们保留源视频 SAM 人物遮罩和原音轨，使用原作者 **Character Swap V1.5＋FL2V Turbo 8-step**，强度均为 1，`er_sde / normal`，CFG 1。初始短测 56 帧、24fps，39 帧窗口、22 帧原生 latent 上下文，固定种子 194731。准备视频的时长改为 0 可处理完整输入，迭代次数从帧数自动计算。480/768 是原版像素预算预设，实际尺寸取决于输入。
 
@@ -27,7 +27,13 @@ FFN 分块设为 2048 以适配小显存，fused modulation 关闭。遮罩外�
 
 如果输出/缓存目录位于 SSD，这些写入会计入 SSD 写入负载并带来磨损。本项目尚未测量长期 SSD 寿命影响。请预留足够空闲空间，并在选择输出磁盘时考虑写入负载；磁盘速度也可能影响缓存和导出耗时。
 
-**已完成任务的缓存不会自动删除。** 确认最终视频已保存到该缓存目录之外且播放正常，并且没有正在运行的生成、续接或恢复需要该任务文件后，可以手动删除对应任务的缓存目录。不要删除运行中任务正在使用的缓存。清理只能释放空间，不能撤销已经发生的写入。
+**默认保留缓存。** 如需自动清理，使用新增的 `H3TextureSaveVideo`（Save Video & Optional Cache Cleanup）节点，连接 Finish Video 的视频输出与同一个 End Loop 的 state。新增示例 `H3-TextureLab-CharacterSwap-480-CacheCleanup.json` 和 `...768-CacheCleanup.json` 已接好；将 **`cleanup_cache`** 开关改成 **true** 才启用，默认 **false**。
+
+该节点先将 MP4 保存到缓存目录之外，逐帧解码检查保存的视频和音频流，核对帧数、画布、帧率及音频流是否保留，成功后才删除本次完整任务中已识别的缓存文件。返回的视频指向最终保存文件，清理后仍能播放。保存/校验失败，或在清理前取消，均保留缓存；发现未知文件、符号链接或 manifest 不匹配时会跳过清理并在 report 中说明。不会清理其他任务目录或模型缓存。
+
+请把它作为本次任务的最终保存节点。如果其他分支、续接、恢复或后续重导出仍需要这些 latent 或合成视频，请保持关闭；本保存节点成功不代表其他无关分支也成功。旧工作流不变，仍可继续使用标准 Save Video。示例保留原生 Start Loop，后续运行会建立新的缓存状态。
+
+也可在确认最终视频已保存到缓存目录之外，且无运行中的任务需要这些文件后手动清理。清理只能释放空间，**不能撤销已经发生的 SSD 写入和磨损**。
 
 ## 实验范围
 

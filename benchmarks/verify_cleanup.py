@@ -43,7 +43,9 @@ async def main():
  for cache_mode,cleanup in [('disk',False),('disk',True),('disk',True),('ram',False),('ram',True)]:
   graph=copy.deepcopy(template)
   deliveries_before=set((OUT/'delivery').glob('*.mp4'))
-  graph['store']['inputs']['cache_mode']=cache_mode
+  if cache_mode == 'disk' and not cleanup:
+   graph['store']['inputs'].pop('cache_mode',None)  # Legacy workflows omit the new optional input.
+  else:graph['store']['inputs']['cache_mode']=cache_mode
   graph['save']['inputs']['cleanup_cache']=cleanup;pid=str(uuid.uuid4());valid=await execution.validate_prompt(pid,graph,None);assert valid[0],valid
   before=set((OUT/'H3-TextureLab-Cache').glob('*'));await executor.execute_async(graph,pid,{},valid[2]);assert executor.success,executor.status_messages
   after=set((OUT/'H3-TextureLab-Cache').glob('*'));assert len(set((OUT/'delivery').glob('*.mp4'))-deliveries_before)==1,'Expected a newly saved delivery';assert len(after-before)==(1 if cache_mode=='disk' and not cleanup else 0),(cleanup,before,after)

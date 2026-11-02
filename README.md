@@ -181,3 +181,9 @@ GUI/API examples were validated against native ComfyUI. Unit storage fixtures ar
 ## License
 
 GPL-3.0-only for this source release. Upstream source and model weights retain their respective licenses. No model checkpoints, personal input media, credentials, or private user workflows are distributed.
+
+## Zero-context independent windows
+
+Set **`context_frames=0`** on **Window Plan** to generate independent windows. Source-video slices, masks and original reference conditioning are retained; Motion Context, previous-window latent loading and Join Match are skipped. All windows are still accumulated in the chosen disk/RAM cache and assembled in order, without discarding overlap. Existing workflows keep their context setting.
+
+Character Swap examples already disable `first_frame_guide`. If that optional switch is enabled, the reference first-frame anchor is applied at the start of **every** independent window. Zero context may limit propagation of previous-window errors, but can cause abrupt pose, texture or color changes at joins; it is **not a proven color-drift fix**. With identical conditioning and a fixed seed, single-image Ref2V independent windows may repeat the same clip. CPU tests verify frame accounting and conditioning preservation; zero-context H3 image quality has not been evaluated.

@@ -9,7 +9,7 @@ spec.loader.exec_module(planning)
 class WindowPlanTests(unittest.TestCase):
     def test_full_short_and_padded_timelines(self):
         for total in [5, 22, 56, 57, 90, 158, 480, 960]:
-            for size, context in [(39, 5), (56, 22), (73, 39), (90, 56)]:
+            for size, context in [(39, 0), (56, 0), (39, 5), (56, 22), (73, 39), (90, 56)]:
                 with self.subTest(total=total, size=size, context=context):
                     entries = planning.window_plan(total, size, context, 41729)
                     retained = 0
@@ -25,6 +25,14 @@ class WindowPlanTests(unittest.TestCase):
         entries = planning.window_plan(158, 56, 22, 7)
         self.assertEqual([e['source_end_exclusive'] for e in entries], [56, 90, 124, 158])
         self.assertEqual([e['discarded_overlap'] for e in entries], [0, 22, 22, 22])
+
+    def test_zero_context_has_contiguous_nonoverlapping_windows(self):
+        entries = planning.window_plan(125, 56, 0, 7)
+        self.assertEqual([e['source_start'] for e in entries], [0, 56, 112])
+        self.assertEqual([e['source_end_exclusive'] for e in entries], [56, 112, 125])
+        self.assertTrue(all(e['history_frames'] == e['discarded_overlap'] == 0 for e in entries))
+        with self.assertRaisesRegex(ValueError, 'negative'):
+            planning.window_plan(125, 56, -1, 7)
 
     def test_non_advancing_plan_rejected(self):
         with self.assertRaises(ValueError):

@@ -20,7 +20,7 @@ class H3TextureWindowPlan(io.ComfyNode):
         return io.Schema(node_id='H3TextureWindowPlan', display_name='H3 Texture Lab · Window Plan', category='H3 Texture Lab',
             inputs=[io.Int.Input('total_frames', default=158, min=5, max=24000),
                 io.Combo.Input('window_frames', options=['39','56','73','90','107','124'], default='56'),
-                io.Combo.Input('context_frames', options=['5','22','39','56'], default='22'),
+                io.Combo.Input('context_frames', options=['0','5','22','39','56'], default='22'),
                 io.Int.Input('seed', default=28461, min=0, max=0xffffffffffffffff, control_after_generate=io.ControlAfterGenerate.fixed)],
             outputs=[io.Int.Output('frames'),io.Int.Output('stride'),io.Int.Output('iterations'),io.Custom('H3_TEXTURE_WINDOWS').Output('windows')])
 
@@ -50,7 +50,8 @@ class H3TextureMotionGuide(io.ComfyNode):
         entry=windows['windows'][iteration_index]
         shape=list(latent['samples'].unbind())[0].shape
         target=latent if preserve_target_latent else _empty_av_latent(shape[-1]*16,shape[-2]*16,entry['window_frames'])[0]
-        if previous is None:
+        has_context=previous is not None and entry['history_frames']>0
+        if not has_context:
             if first_frame_guide:
                 positive=MiniMaxH3AddGuide.execute(positive=positive,latent=target,vae=vae,image=reference[:1],frame_idx=0)[0]
             trim=0
@@ -72,7 +73,7 @@ class H3TextureMotionGuide(io.ComfyNode):
             positive=[[embedding,{**metadata,'minimax_keyframes':[k for k in metadata.get('minimax_keyframes',[]) if 'audio_latent' not in k]}] for embedding,metadata in positive]
         if trim != entry['discarded_overlap']:
             raise ValueError('Native H3 context trim does not match the disk window plan')
-        return io.NodeOutput(positive,target,entry,entry['seed'],trim,previous is not None)
+        return io.NodeOutput(positive,target,entry,entry['seed'],trim,has_context)
 
 
 class H3TextureAppendWindow(io.ComfyNode):
@@ -87,7 +88,7 @@ class H3TextureAppendWindow(io.ComfyNode):
 
     @classmethod
     def execute(cls,av_latent,vae,window,previous=None,drift_correction='off',cache_mode='disk'):
-        if drift_correction=='join_match' and previous is not None:
+        if drift_correction=='join_match' and previous is not None and window['discarded_overlap']>0:
             av_latent=nodes.NODE_CLASS_MAPPINGS['MiniMaxH3JoinMatch']().apply(
                 av_latent,1.,window['discarded_overlap'],1.5,match_spread=True,match_detail=True,
                 tuning='auto',context_latent=context_latent(previous))[0]

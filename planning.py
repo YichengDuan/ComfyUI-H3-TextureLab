@@ -1,6 +1,8 @@
 """Frame-conserving plans on H3's aligned window/context lengths."""
 def window_plan(total_frames, window_frames, context_frames, seed):
     size, overlap = int(window_frames), int(context_frames)
+    if overlap < 0:
+        raise ValueError('Context frames cannot be negative')
     if size <= overlap:
         raise ValueError('The H3 window must leave frames after its pinned context')
     entries = []

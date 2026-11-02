@@ -1,0 +1,26 @@
+{
+  "success": true,
+  "cases": [
+    {
+      "cache_mode": "disk",
+      "windows": 3,
+      "delivered_frames": 83,
+      "zero_trim": true
+    },
+    {
+      "cache_mode": "ram",
+      "windows": 3,
+      "delivered_frames": 83,
+      "zero_trim": true
+    }
+  ],
+  "motion_context_calls": 0,
+  "join_match_calls": 0,
+  "history_loads": 0,
+  "history_vae_encode_calls": 0,
+  "reference_conditioning_and_source_latent_preserved": true,
+  "optional_first_frame_anchor_on_each_independent_window": true,
+  "scope": "Native ComfyUI CPU node contract with synthetic latent/frame fixtures; no H3 inference or quality claim.",
+  "unit_tests_passed": 21,
+  "existing_22_frame_context_regression": true
+}

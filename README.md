@@ -104,6 +104,14 @@ Refinement uses the main schedule's final interval, plain original-reference con
 
 [480p motion video](docs/media/motion-480-refine.mp4) · [768p motion video](docs/media/motion-768-refine.mp4)
 
+## SSD writes and cache cleanup
+
+**Disk-backed windows trade memory use for additional disk writes.** Each sampled window, including its overlapping context, is saved as uncompressed float32 video/audio safetensors in `<output directory>/H3-TextureLab-Cache/<run-id>/`. The manifest and assembled video also require writes; saving the delivered video can create another output file. Total writes therefore exceed the size of the final compressed MP4 and grow with resolution, duration, overlap and repeated runs.
+
+If this output/cache directory is on an SSD, these writes contribute to SSD wear. This project has not measured long-term SSD endurance impact. Keep sufficient free space and consider the write workload when choosing the output drive; storage speed can also affect caching and export time.
+
+**Completed run caches are not automatically deleted.** After verifying the final saved video and confirming that no active generation, continuation or recovery needs a run's files, you can manually delete that run's cache directory. Do not delete caches used by a running job. Cleanup reclaims disk space; it does not undo writes already performed.
+
 ## Important limits
 
 - The exporter retains an optional **source soundtrack**. Single-image examples remain silent; generated audio-latent decoding is not implemented.

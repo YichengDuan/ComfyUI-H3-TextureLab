@@ -40,15 +40,16 @@ async def main():
  nodes.NODE_CLASS_MAPPINGS['CleanupWindow']=Window
  executor=execution.PromptExecutor(server,cache_type=execution.CacheType.CLASSIC,cache_args={'lru':0,'ram':0,'ram_inactive':0},asset_manager=assets);records=[]
  template=copy.deepcopy(graph)
- for cleanup in [False,True,True]:
+ for cache_mode,cleanup in [('disk',False),('disk',True),('disk',True),('ram',False),('ram',True)]:
   graph=copy.deepcopy(template)
   deliveries_before=set((OUT/'delivery').glob('*.mp4'))
+  graph['store']['inputs']['cache_mode']=cache_mode
   graph['save']['inputs']['cleanup_cache']=cleanup;pid=str(uuid.uuid4());valid=await execution.validate_prompt(pid,graph,None);assert valid[0],valid
   before=set((OUT/'H3-TextureLab-Cache').glob('*'));await executor.execute_async(graph,pid,{},valid[2]);assert executor.success,executor.status_messages
-  after=set((OUT/'H3-TextureLab-Cache').glob('*'));assert len(set((OUT/'delivery').glob('*.mp4'))-deliveries_before)==1,'Expected a newly saved delivery';assert len(after-before)==(0 if cleanup else 1),(cleanup,before,after)
+  after=set((OUT/'H3-TextureLab-Cache').glob('*'));assert len(set((OUT/'delivery').glob('*.mp4'))-deliveries_before)==1,'Expected a newly saved delivery';assert len(after-before)==(1 if cache_mode=='disk' and not cleanup else 0),(cleanup,before,after)
   image=executor.history_result['outputs']['save']['images'][0];video=OUT/image['subfolder']/image['filename']
   with av.open(str(video)) as c:assert sum(1 for _ in c.decode(video=0))==56
   with av.open(str(video)) as c:assert sum(f.samples for f in c.decode(audio=0))>0
-  records.append({'cleanup_cache':cleanup,'success':True,'frames':56,'audio_decodes':True,'new_cache_directories_retained':len(after-before),'saved_file':video.name})
+  records.append({'cache_mode':cache_mode,'cleanup_cache':cleanup,'success':True,'frames':56,'audio_decodes':True,'new_cache_directories_retained':len(after-before),'saved_file':video.name})
  (OUT/'native-validation.json').write_text(json.dumps({'runs':records,'repeat_with_same_executor':True,'fixture':'Synthetic CPU latents and VAE, actual native loop/export/save nodes; no H3 inference.'},indent=2)+'\n');print('NATIVE CLEANUP SMOKE PASSED',json.dumps(records),flush=True)
 asyncio.run(main())

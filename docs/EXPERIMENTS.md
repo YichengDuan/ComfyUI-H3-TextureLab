@@ -150,3 +150,20 @@ Machine-readable results: [cache-cleanup-validation.json](../results/cache-clean
 
 
 A subsequent **live local ComfyUI GPU acceptance run** used the actual Character Swap workflow at480×736, two39-frame windows with22-frame overlap,56 delivered frames,8 steps and cleanup enabled. Its inputs were the previously generated male portrait and synthetic-adult motion clip. The run completed in about220.3s including polling overhead. The run's manifest/cache was observed during generation and its directory was gone after save; all pre-existing run directories remained. The saved MP4 still decoded to56 frames with decodable audio after deletion. This qualifies the live save/cleanup path, not long-video identity quality. No new media files were added to the repository for this acceptance test.
+
+
+## RAM cache mode — 2026-11-02
+
+Added `cache_mode=disk|ram` to Store AV Latent, with disk remaining the default. RAM stores owned CPU float32 AV snapshots per run, reuses payload ownership across timeline states without concatenating decoded RGB histories, and supplies context through the same AV-loading interface. Mid-run mode changes are rejected. RAM export streams one decoded window at a time into an in-memory H.264/AAC MP4; it creates no latent files, manifest, WAV or intermediate MP4. Final delivery still writes to output. Optional verified cleanup releases this run's RAM payloads/buffer only. Source decoding, model caches, compiled-kernel caches and OS swap remain separate.
+
+Validation:20 unit tests passed. Native CPU loop/export/save validation covers disk off/on/on and RAM off/on,56 frames per request, preserved decodable audio, and a distinct saved delivery per request. RAM cases created no run-cache directories. A separate call to the actual upstream Motion Context produced seven exactly matching disk/RAM video context tensors,22-frame trim,zero VAE encode calls and retained two reference metadata blocks. This is a CPU context contract, not multireference generation or RAM-mode H3 GPU inference acceptance. No new media was published.
+
+The measured39-frame payload is approximately1.61MB at480×736 and4.00MB at768×1152. RAM keeps this payload instead of writing it; at40s/24fps/22-frame context this is about90MB/224MB, excluding all other allocations. A process crash/restart loses RAM cache.
+
+Data: [ram-cache-validation.json](../results/ram-cache-validation.json). The native cleanup smoke script now tests both modes. The optional context contract can be reproduced with:
+
+```sh
+python benchmarks/verify_ram_context.py --comfy-root /path/to/ComfyUI \
+  --motion-context-root /path/to/ComfyUI/custom_nodes/ComfyUI-H3-Motion-Context \
+  --output /path/to/ram-context-result.json
+```

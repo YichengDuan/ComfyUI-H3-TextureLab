@@ -4,6 +4,8 @@ import json
 import subprocess
 import uuid
 import wave
+import io as python_io
+from fractions import Fraction
 import numpy as np
 import torch
 from safetensors.torch import load_file, save_file
@@ -14,6 +16,7 @@ CONTRACT='h3_texture_disk_v1'
 
 
 class LatentTimeline:
+    storage_mode = 'disk'
     def __init__(self,root,chunks,shape,vae):
         self.root=Path(root);self.chunks=tuple(chunks);self.shape=torch.Size(shape);self.vae=vae
 
@@ -24,9 +27,12 @@ class LatentTimeline:
         if not path.is_relative_to(self.root.resolve()):raise ValueError('Latent file escaped its run directory')
         return path
 
+    def load_av(self, name):
+        return load_file(str(self.path(name)), device='cpu')
+
     def decode_chunk(self,chunk):
         name,first,count,trim=chunk
-        data=load_file(str(self.path(name)),device='cpu');frames=self.vae.decode(data['video']).detach().cpu()
+        data=self.load_av(name);frames=self.vae.decode(data['video']).detach().cpu()
         if frames.ndim==5:frames=frames.reshape(-1,*frames.shape[-3:])
         if len(frames)<trim+count:raise ValueError('Decoded latent does not cover the requested window')
         return frames[trim:trim+count]
@@ -50,33 +56,127 @@ class LatentTimeline:
             del frame,decoded
 
 
-def append_window(av_latent,vae,window,previous=None):
-    import folder_paths
+class MemoryLatentTimeline(LatentTimeline):
+    storage_mode = 'ram'
+
+    def __init__(self, chunks, shape, vae, payloads):
+        self.root = None
+        self.chunks = tuple(chunks)
+        self.shape = torch.Size(shape)
+        self.vae = vae
+        self.payloads = payloads
+        self.encoded_video = None
+
+    def load_av(self, name):
+        data = self.payloads.get(name)
+        if not data:
+            raise ValueError('RAM cache was released after the final save')
+        return {key: value.clone() for key, value in data.items()}
+
+    def release(self):
+        # Payload dictionaries are shared by this run's earlier timeline states.
+        for data in self.payloads.values():
+            data.clear()
+        self.payloads.clear()
+        if self.encoded_video is not None:
+            self.encoded_video.close()
+            self.encoded_video = None
+
+
+def append_window(av_latent,vae,window,previous=None,cache_mode='disk'):
+    if cache_mode not in ('disk', 'ram'):
+        raise ValueError('Cache mode must be disk or ram')
     samples=av_latent['samples'];video,audio=list(samples.unbind()) if hasattr(samples,'unbind') else samples
     if video.ndim!=5 or video.shape[0]!=1 or video.shape[1]!=24:
         raise ValueError('Expected native H3 video/audio sampler output')
     prefix=previous['frames'] if previous is not None else None;retained=len(prefix) if prefix is not None else 0
     trim=window['discarded_overlap'];end=window['source_end_exclusive']
     if retained!=window['source_start']+trim:raise ValueError('Window plan would create a gap or duplicate')
-    if prefix is None:
-        root=Path(folder_paths.get_output_directory())/'H3-TextureLab-Cache'/uuid.uuid4().hex;root.mkdir(parents=True);chunks=()
-    else:root,chunks=prefix.root,prefix.chunks
-    name=f'window_{len(chunks):05d}.safetensors';temporary=root/(name+'.part')
-    save_file({'video':video.detach().to(device='cpu',dtype=torch.float32).contiguous(),
-        'audio':audio.detach().to(device='cpu',dtype=torch.float32).contiguous()},str(temporary));temporary.replace(root/name)
-    timeline=LatentTimeline(root,(*chunks,(name,retained,end-retained,trim)),(end,video.shape[-2]*16,video.shape[-1]*16,3),vae)
+    if prefix is not None and prefix.storage_mode != cache_mode:
+        raise ValueError('Do not change cache mode partway through a run')
+    chunks=prefix.chunks if prefix is not None else ()
+    name=f'window_{len(chunks):05d}.safetensors'
+    data={'video':video.detach().to(device='cpu',dtype=torch.float32).contiguous(),
+          'audio':audio.detach().to(device='cpu',dtype=torch.float32).contiguous()}
+    chunks=(*chunks,(name,retained,end-retained,trim))
+    shape=(end,video.shape[-2]*16,video.shape[-1]*16,3)
+    if cache_mode == 'ram':
+        payloads=dict(prefix.payloads) if prefix is not None else {}
+        payloads[name]={key:value.clone() for key,value in data.items()}
+        timeline=MemoryLatentTimeline(chunks,shape,vae,payloads)
+    else:
+        import folder_paths
+        if prefix is None:
+            root=Path(folder_paths.get_output_directory())/'H3-TextureLab-Cache'/uuid.uuid4().hex
+            root.mkdir(parents=True)
+        else:
+            root=prefix.root
+        temporary=root/(name+'.part')
+        save_file(data,str(temporary));temporary.replace(root/name)
+        timeline=LatentTimeline(root,chunks,shape,vae)
     state={'contract':CONTRACT,'frames':timeline,'windows':[*previous['windows'],window] if previous else [window],
-        'source_frames':window['source_frames'],'av_latent_file':name}
-    manifest={k:v for k,v in state.items() if k!='frames'};manifest.update(chunks=timeline.chunks,shape=list(timeline.shape),fps=24)
-    temporary=root/'manifest.json.part';temporary.write_text(json.dumps(manifest,indent=2)+'\n');temporary.replace(root/'manifest.json')
+        'source_frames':window['source_frames'],'av_latent_file':name,'cache_mode':cache_mode}
+    if cache_mode == 'disk':
+        manifest={k:v for k,v in state.items() if k!='frames'}
+        manifest.update(chunks=timeline.chunks,shape=list(timeline.shape),fps=24)
+        temporary=root/'manifest.json.part'
+        temporary.write_text(json.dumps(manifest,indent=2)+'\n');temporary.replace(root/'manifest.json')
     return state
+
+
+def encode_memory_video(timeline, crf, source_audio):
+    """Stream decoded windows directly into an in-RAM MP4, including source audio."""
+    import av
+    import comfy.model_management
+
+    buffer = python_io.BytesIO()
+    try:
+        with av.open(buffer, 'w', format='mp4') as container:
+            stream = container.add_stream('libx264', rate=24)
+            stream.width, stream.height = timeline.shape[2], timeline.shape[1]
+            stream.pix_fmt = 'yuv420p'
+            stream.options = {'crf': str(crf), 'preset': 'fast'}
+            stream.codec_context.thread_count = 2
+            audio_stream = None
+            if source_audio is not None:
+                rate = int(source_audio['sample_rate'])
+                waveform = source_audio['waveform'][0].detach().cpu().clamp(-1, 1)
+                count = round(len(timeline) * rate / 24)
+                waveform = torch.nn.functional.pad(waveform[..., :count], (0, max(0, count-waveform.shape[-1])))
+                layout = av.AudioLayout(f'{waveform.shape[0]}c').name
+                audio_stream = container.add_stream('aac', rate=rate)
+                audio_stream.layout = layout
+                audio_stream.bit_rate = 192000
+            for index, image in enumerate(timeline.iter_frames()):
+                comfy.model_management.throw_exception_if_processing_interrupted()
+                pixels = image.clamp(0, 1).mul(65535).round().numpy().astype('<u2')
+                frame = av.VideoFrame.from_ndarray(pixels, format='rgb48le')
+                frame.pts, frame.time_base = index, Fraction(1, 24)
+                for packet in stream.encode(frame):
+                    container.mux(packet)
+            for packet in stream.encode():
+                container.mux(packet)
+            if audio_stream is not None:
+                for first in range(0, waveform.shape[-1], 4096):
+                    comfy.model_management.throw_exception_if_processing_interrupted()
+                    frame = av.AudioFrame.from_ndarray(waveform[:, first:first+4096].contiguous().numpy(), format='fltp', layout=layout)
+                    frame.sample_rate, frame.pts, frame.time_base = rate, first, Fraction(1, rate)
+                    for packet in audio_stream.encode(frame):
+                        container.mux(packet)
+                for packet in audio_stream.encode():
+                    container.mux(packet)
+    except BaseException:
+        buffer.close()
+        raise
+    buffer.seek(0)
+    return buffer
 
 
 class H3TextureFinishVideo(io.ComfyNode):
     @classmethod
     def define_schema(cls):
         return io.Schema(node_id='H3TextureFinishVideo',display_name='H3 Texture Lab · Stream Final Video',category='H3 Texture Lab',
-            description='Decode one saved window at a time; optionally retain the original source soundtrack.',
+            description='Decode one cached window at a time. RAM mode assembles the MP4 in memory; disk mode uses the run cache.',
             inputs=[io.Custom('H3_TEXTURE_STATE').Input('state'),io.Int.Input('crf',default=16,min=0,max=51),io.Audio.Input('source_audio',optional=True)],
             outputs=[io.Video.Output('video'),io.String.Output('report')])
 
@@ -86,6 +186,13 @@ class H3TextureFinishVideo(io.ComfyNode):
         timeline=state['frames']
         if state['contract']!=CONTRACT or len(timeline)!=state['source_frames']:
             raise ValueError('Saved windows do not cover the completed timeline')
+        if timeline.storage_mode == 'ram':
+            buffer=encode_memory_video(timeline,crf,source_audio)
+            timeline.encoded_video=buffer
+            report={'frames':len(timeline),'fps':24,'canvas':list(timeline.shape[1:3]),
+                    'audio_export':'source' if source_audio is not None else 'none',
+                    'cache_mode':'ram','cache_directory':None,'assembled_mp4_bytes':buffer.getbuffer().nbytes}
+            return io.NodeOutput(VideoFromFile(buffer),json.dumps(report,indent=2))
         partial=timeline.root/'assembling.mp4';output=timeline.root/'assembled.mp4'
         audio_args=['-an']
         audio_file=None

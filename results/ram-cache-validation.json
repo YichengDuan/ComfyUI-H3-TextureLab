@@ -1,0 +1,81 @@
+{
+  "runs": [
+    {
+      "cache_mode": "disk",
+      "cleanup_cache": false,
+      "success": true,
+      "frames": 56,
+      "audio_decodes": true,
+      "new_cache_directories_retained": 1,
+      "saved_file": "cleanup-smoke_00001_.mp4"
+    },
+    {
+      "cache_mode": "disk",
+      "cleanup_cache": true,
+      "success": true,
+      "frames": 56,
+      "audio_decodes": true,
+      "new_cache_directories_retained": 0,
+      "saved_file": "cleanup-smoke_00002_.mp4"
+    },
+    {
+      "cache_mode": "disk",
+      "cleanup_cache": true,
+      "success": true,
+      "frames": 56,
+      "audio_decodes": true,
+      "new_cache_directories_retained": 0,
+      "saved_file": "cleanup-smoke_00003_.mp4"
+    },
+    {
+      "cache_mode": "ram",
+      "cleanup_cache": false,
+      "success": true,
+      "frames": 56,
+      "audio_decodes": true,
+      "new_cache_directories_retained": 0,
+      "saved_file": "cleanup-smoke_00004_.mp4"
+    },
+    {
+      "cache_mode": "ram",
+      "cleanup_cache": true,
+      "success": true,
+      "frames": 56,
+      "audio_decodes": true,
+      "new_cache_directories_retained": 0,
+      "saved_file": "cleanup-smoke_00005_.mp4"
+    }
+  ],
+  "repeat_with_same_executor": true,
+  "fixture": "Synthetic CPU latents and VAE, actual native loop/export/save nodes; no H3 inference.",
+  "unit_tests_passed": 20,
+  "ram_context_contract": {
+    "success": true,
+    "raw_context_keyframes": 7,
+    "trim_frames": 22,
+    "disk_ram_context_video_tensors_exactly_equal": true,
+    "vae_encode_calls": 0,
+    "two_reference_metadata_blocks_preserved": true,
+    "scope": "CPU contract of actual upstream Motion Context; no H3 inference or multireference generation."
+  },
+  "scope": "CPU unit tests and real native ComfyUI loop/export/save nodes using synthetic latents; RAM mode has not yet been accepted with a real H3 GPU generation.",
+  "source_sha256_recorded_after_validation": {
+    "storage.py": "3d246c38f1a7539402f08c4f1a8bad7e6fd37c2118c82fed81322a3140d2f2c7",
+    "save_video.py": "877b84766293a408f36fcb16f95a89dbc2b614d72eca626fe6b675fcdd7d4996",
+    "__init__.py": "9eb1989a73d9710774d92163287b3fcd0cc97e1a4a1942ca3eb81fff8c871f76",
+    "tests/test_ram.py": "7bc2e1286f788170d1a08753fc4e28de5216a40d2369a3272112f617d53d2ca1",
+    "benchmarks/verify_cleanup.py": "3b4620605f0437a44d7522fbd8207e3257a2d921eb2dd7fcb64b640953e2ba39"
+  },
+  "native_workflow_validation": {
+    "H3-TextureLab-CharacterSwap-768-RAM.api.json": {
+      "valid": true,
+      "error": null,
+      "node_errors": {}
+    },
+    "H3-TextureLab-CharacterSwap-480-RAM.api.json": {
+      "valid": true,
+      "error": null,
+      "node_errors": {}
+    }
+  }
+}

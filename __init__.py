@@ -1,6 +1,5 @@
 """Isolated H3 texture experiments: native latent carry and disk-backed windows."""
 import nodes
-from safetensors.torch import load_file
 from .storage import append_window,H3TextureFinishVideo
 from .planning import window_plan
 from .source_window import H3TextureSourceWindow
@@ -11,11 +10,7 @@ from comfy_api.latest import io
 
 
 def context_latent(state):
-    root = state['frames'].root.resolve()
-    path = (root/state['av_latent_file']).resolve()
-    if not path.is_relative_to(root):
-        raise ValueError('H3 context latent escaped its run directory')
-    data = load_file(str(path), device='cpu')
+    data = state['frames'].load_av(state['av_latent_file'])
     return {'samples': [data['video'], data['audio']]}
 
 
@@ -83,19 +78,20 @@ class H3TextureMotionGuide(io.ComfyNode):
 class H3TextureAppendWindow(io.ComfyNode):
     @classmethod
     def define_schema(cls):
-        return io.Schema(node_id='H3TextureAppendWindow', display_name='H3 Texture Lab · Store AV Latent', category='H3 Texture Lab',
+        return io.Schema(node_id='H3TextureAppendWindow', display_name='H3 Texture Lab · Store AV Latent · Disk / RAM', category='H3 Texture Lab',
             inputs=[io.Latent.Input('av_latent'),io.Vae.Input('vae'),io.Custom('H3_TEXTURE_WINDOW').Input('window'),
                 io.Custom('H3_TEXTURE_STATE').Input('previous',optional=True),
-                io.Combo.Input('drift_correction',options=['off','join_match'],default='off')],
+                io.Combo.Input('drift_correction',options=['off','join_match'],default='off'),
+                io.Combo.Input('cache_mode',options=['disk','ram'],default='disk',optional=True,tooltip='disk: save per-window AV files. ram: keep CPU tensors and assemble MP4 in memory; final delivery still saves to output.')],
             outputs=[io.Custom('H3_TEXTURE_STATE').Output('state')])
 
     @classmethod
-    def execute(cls,av_latent,vae,window,previous=None,drift_correction='off'):
+    def execute(cls,av_latent,vae,window,previous=None,drift_correction='off',cache_mode='disk'):
         if drift_correction=='join_match' and previous is not None:
             av_latent=nodes.NODE_CLASS_MAPPINGS['MiniMaxH3JoinMatch']().apply(
                 av_latent,1.,window['discarded_overlap'],1.5,match_spread=True,match_detail=True,
                 tuning='auto',context_latent=context_latent(previous))[0]
-        return io.NodeOutput(append_window(av_latent,vae,window,previous))
+        return io.NodeOutput(append_window(av_latent,vae,window,previous,cache_mode))
 
 
 NODE_CLASS_MAPPINGS={c.__name__:c for c in (H3TextureWindowPlan,H3TextureMotionGuide,H3TextureAppendWindow,H3TextureSourceWindow)}

@@ -48,6 +48,7 @@ Import a workflow from [examples](examples). Start with:
 |---|---|
 | **Video + character image, 480 preset** | **`H3-TextureLab-CharacterSwap-480.json`** |
 | **Video + character image, 768 preset** | **`H3-TextureLab-CharacterSwap-768.json`** |
+| Video + image, RAM cache | `H3-TextureLab-CharacterSwap-480-RAM.json` / `...768-RAM.json` |
 | Video + image, optional cache cleanup | `H3-TextureLab-CharacterSwap-480-CacheCleanup.json` / `...768-CacheCleanup.json` |
 | Single-image component: native latent carry | `H3-TextureLab-Simple.json` |
 | Reference refresh + join correction | `H3-TextureLab-Simple-Refine.json` |
@@ -105,9 +106,24 @@ Refinement uses the main schedule's final interval, plain original-reference con
 
 [480p motion video](docs/media/motion-480-refine.mp4) · [768p motion video](docs/media/motion-768-refine.mp4)
 
+## Disk or system-RAM cache
+
+The **Store AV Latent · Disk / RAM** node has a **`cache_mode`** selector:
+
+| Mode | Window cache | Intermediate assembled MP4 | Recovery |
+|---|---|---|---|
+| `disk` (existing/default) | Float32 AV safetensors and manifest in the output cache directory | On disk | Files remain available until cleanup |
+| `ram` | Owned CPU tensors in this run's execution state | Encoded directly into an in-memory MP4 buffer, including source audio | Lost when released, the execution cache is cleared, or ComfyUI exits |
+
+Use `H3-TextureLab-CharacterSwap-480-RAM.json` or `...768-RAM.json`, or set **`cache_mode=ram`** on the store node in your own copy. Finish Video detects the mode automatically. Existing workflows keep the disk default. Do not change the mode halfway through a run.
+
+RAM mode writes no per-window latent files, manifest, temporary audio WAV or intermediate MP4 cache. **Saving the final video still writes the output MP4**, using an atomic temporary delivery file. With `cleanup_cache=true`, the verified-save node releases this run's owned RAM payloads and in-memory video buffer after saving; with it off, they remain available while the execution state is retained. This does not purge model caches or other runs. Native execution caches may retain additional tensors independently.
+
+Memory use grows with resolution and window count: the measured 39-frame cache payload is about1.61MB at480×736 or4.00MB at768×1152 per window, roughly90MB/224MB for40s at24fps with22-frame overlap, **excluding** models, source frames/masks, decoded-window buffers, encoded video and native executor caches. RAM mode does not guarantee zero system-wide SSD writes: ComfyUI logs, kernel caches and operating-system swap may still write. It does not change swap settings, and it cannot recover a run after a crash/restart.
+
 ## SSD writes and cache cleanup
 
-**Disk-backed windows trade memory use for additional disk writes.** Each sampled window, including its overlapping context, is saved as uncompressed float32 video/audio safetensors in `<output directory>/H3-TextureLab-Cache/<run-id>/`. The manifest and assembled video also require writes; saving the delivered video can create another output file. Total writes therefore exceed the size of the final compressed MP4 and grow with resolution, duration, overlap and repeated runs.
+**In `disk` mode, disk-backed windows trade memory use for additional disk writes.** Each sampled window, including its overlapping context, is saved as uncompressed float32 video/audio safetensors in `<output directory>/H3-TextureLab-Cache/<run-id>/`. The manifest and assembled video also require writes; saving the delivered video can create another output file. Total writes therefore exceed the size of the final compressed MP4 and grow with resolution, duration, overlap and repeated runs.
 
 If this output/cache directory is on an SSD, these writes contribute to SSD wear. This project has not measured long-term SSD endurance impact. Keep sufficient free space and consider the write workload when choosing the output drive; storage speed can also affect caching and export time.
 

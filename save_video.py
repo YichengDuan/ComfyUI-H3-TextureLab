@@ -29,6 +29,9 @@ def verify_video(path, timeline, interrupt_check):
 def cleanup_run(state, output_directory):
     """Remove only the completed, recognized files belonging to this state."""
     timeline = state['frames']
+    if timeline.storage_mode == 'ram':
+        timeline.release()
+        return 'released_ram'
     root = timeline.root
     cache = (Path(output_directory) / 'H3-TextureLab-Cache').resolve()
     if root.is_symlink() or root.resolve().parent != cache or not re.fullmatch(r'[0-9a-f]{32}', root.name):
@@ -64,11 +67,14 @@ def save_delivery(video, state, filename_prefix, cleanup_cache, interrupt_check,
     filename = f'{name}_{counter:05}_.mp4'
     destination = Path(folder) / filename
     cache = (Path(output_directory) / 'H3-TextureLab-Cache').resolve()
-    if destination.resolve().is_relative_to(cache) or destination.resolve().is_relative_to(timeline.root.resolve()):
+    if destination.resolve().is_relative_to(cache) or (timeline.storage_mode == 'disk' and destination.resolve().is_relative_to(timeline.root.resolve())):
         raise ValueError("Final video must be saved outside the cache directory")
     if cleanup_cache:
         source = video.get_stream_source()
-        if not isinstance(source, (str, Path)) or Path(source).resolve() != (timeline.root / 'assembled.mp4').resolve():
+        if timeline.storage_mode == 'ram':
+            if source is not timeline.encoded_video:
+                raise ValueError("Cleanup requires the assembled RAM video from this run's Finish Video node")
+        elif not isinstance(source, (str, Path)) or Path(source).resolve() != (timeline.root / 'assembled.mp4').resolve():
             raise ValueError("Cleanup requires the assembled video from this run's Finish Video node")
     temporary = destination.with_name(f'.{destination.stem}.{uuid.uuid4().hex}.part.mp4')
     try:

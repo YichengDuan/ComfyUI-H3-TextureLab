@@ -147,3 +147,6 @@ python benchmarks/verify_cleanup.py --comfy-root /path/to/ComfyUI --output /path
 ```
 
 Machine-readable results: [cache-cleanup-validation.json](../results/cache-cleanup-validation.json). Cleanup reclaims space after writes have occurred; it does not reduce SSD write volume.
+
+
+A subsequent **live local ComfyUI GPU acceptance run** used the actual Character Swap workflow at480×736, two39-frame windows with22-frame overlap,56 delivered frames,8 steps and cleanup enabled. Its inputs were the previously generated male portrait and synthetic-adult motion clip. The run completed in about220.3s including polling overhead. The run's manifest/cache was observed during generation and its directory was gone after save; all pre-existing run directories remained. The saved MP4 still decoded to56 frames with decodable audio after deletion. This qualifies the live save/cleanup path, not long-video identity quality. No new media files were added to the repository for this acceptance test.

@@ -1,0 +1,152 @@
+# ComfyUI H3 Texture Lab
+
+[English](README.md) · [简体中文](README.zh-CN.md) · [Experiment report](docs/EXPERIMENTS.md)
+
+**Character Swap from one source video and one character image**, with experimental MiniMax H3 latent continuation, disk-backed windows, and texture/color-drift investigations.
+
+## Origin and attribution
+
+This project started as an adaptation of **Character Swap V1.5 · H3 Relay 2.0** by **Akatz AI / Akatz Labs**:
+
+- [Original Character Swap V1.5 model and workflow](https://huggingface.co/akatz-ai/MiniMax-H3-Character-Swap-LoRA)
+- [Exact original Relay V2 workflow](https://huggingface.co/akatz-ai/MiniMax-H3-Character-Swap-LoRA/blob/main/examples/H3-Character-Swap-Relay-V2.json)
+- [H3 Relay toolkit](https://github.com/akatz-ai/h3-relay)
+
+The initial investigation adapted its windowed workflow to save completed latents instead of accumulating decoded image prefixes. This repository extracts the continuation/storage experiments into a standalone node pack. **Character Swap V1.5, its training, the original workflow, and H3 Relay are upstream work.** The new Character Swap examples adapt its source-video, SAM mask, reference-image and source-audio pipeline. Separate single-image Ref2V examples remain component experiments; their results must not be read as Character Swap quality measurements.
+
+Native latent continuation, Refine Blend, and Join Match are provided by [NikoDemon80/ComfyUI-H3-Motion-Context](https://github.com/NikoDemon80/ComfyUI-H3-Motion-Context). This pack calls those nodes and adds window planning, disk state, streaming final decode, and reproducible experiments. See [provenance and licenses](THIRD_PARTY_NOTICES.md).
+
+## What is implemented
+
+- Carry aligned **22-frame native AV latent context** between windows, preserving the original image reference.
+- Save one AV safetensors file per window and a manifest; keep decoded images out of accumulated loop state.
+- Decode one window at a time during final video export.
+- Optional upstream **Join Match** and **one-step Refine Blend** with the pinned head protected.
+- A matched `pixels_reencoded` diagnostic that changes video history only, retaining the same audio context.
+- An opt-in native weight-offload policy for small GPUs.
+- Experimental FFN chunks and fused modulation, both disabled by default.
+
+These methods reduce some observed drift. They do **not** guarantee stable identity, texture, anatomy, or moving-camera backgrounds over arbitrary durations.
+
+## Install
+
+Tested with **ComfyUI 0.42.0**, Python 3.12, PyTorch 2.15.0+cu132, Linux, RTX 3070 Ti and RTX A2000 Laptop. Native H3 support and the upstream Motion Context layout contract are required.
+
+Inside `ComfyUI/custom_nodes`:
+
+```sh
+git clone https://github.com/akatz-ai/h3-relay.git
+git clone https://github.com/NikoDemon80/ComfyUI-H3-Motion-Context.git
+git clone https://github.com/YichengDuan/ComfyUI-H3-TextureLab.git
+```
+
+Use **ComfyUI's Python environment** to install this pack's `requirements.txt` if needed. Copy the PNGs and MP4s in `examples/inputs` to `ComfyUI/input`, then restart ComfyUI. Model filenames are listed in [configs/models.json](configs/models.json); obtain weights separately from their original publishers.
+
+Import a workflow from [examples](examples). Start with:
+
+| Use | Workflow |
+|---|---|
+| **Video + character image, 480 preset** | **`H3-TextureLab-CharacterSwap-480.json`** |
+| **Video + character image, 768 preset** | **`H3-TextureLab-CharacterSwap-768.json`** |
+| Single-image component: native latent carry | `H3-TextureLab-Simple.json` |
+| Reference refresh + join correction | `H3-TextureLab-Simple-Refine.json` |
+| Full-body motion, 480-pixel short edge | `H3-TextureLab-Motion-480-Refine.json` |
+| Full-body motion, 768-pixel short edge | `H3-TextureLab-Motion-768-Refine.json` |
+
+The **single-image component examples** generate **158 frames / 6.58 seconds** at 24fps. Defaults: 56-frame windows, 22-frame context, CFG 1, 8-step Ref2V Turbo, `er_sde`, and the selected `normal` or `simple` scheduler. Seeds are fixed. Adjust the reference, prompt, and `total_frames` for your own experiment.
+
+`56 + 3 × (56 − 22) = 158`: pinned context is trimmed from every continuation. Use the window planner's iteration count; avoid hard-coding the number of loop iterations.
+
+## Character Swap usage
+
+Load a source video and a portrait or character image. Describe the source person in the SAM text (default `person`), inspect the selected mask, and describe the replacement character in the H3 prompt. The new workflows retain the source soundtrack. They use the original **Character Swap V1.5 + FL2V Turbo 8-step**, both strength 1, `er_sde` / `normal`, CFG 1. They do not use the Ref2V Turbo adapter from the component examples.
+
+The initial short test setting is **56 delivered frames / 2.33s**, 39-frame windows, 22-frame context, fixed seed 194731. Source preparation uses the upstream pixel-budget presets; actual dimensions depend on the input. For a longer video set Prepare Source `duration_seconds` to zero. The planner reads the prepared frame count automatically. FFN chunks are 2048 tokens for this small-GPU example; fused modulation is off.
+
+Source pixels outside the pooled edit mask remain source latent samples. Native context is applied **without replacing that source latent or its noise mask**. The first frame is not pinned to the portrait composition. Source audio is guided separately and muxed into final output. Global Join Match is **off** because it would modify protected background samples.
+
+## Single-image component pipeline
+
+```mermaid
+flowchart LR
+  R[Original reference] --> C[Native Ref2V conditioning]
+  P[Previous AV file] --> M[Motion Context]
+  C --> M
+  M --> S[Window sampler]
+  S --> F[Optional reference refine / head blend]
+  F --> J[Optional Join Match]
+  J --> D[AV safetensors + manifest]
+  D --> P
+  D --> V[Final per-window VAE decode]
+  V --> O[Silent MP4]
+```
+
+Refinement uses the main schedule's final interval, plain original-reference conditioning, a separate fixed seed, and the upstream blend node. It is skipped on the first window and in non-refine examples through lazy execution. The blend protects pinned frames. `normal` and `simple` produce different final sigmas; their refinement passes are not interchangeable.
+
+![Video + image Character Swap](docs/media/character-swap-overview.jpg)
+
+[480 Character Swap](docs/media/character-swap-480.mp4) · [768 Character Swap](docs/media/character-swap-768.mp4) · [Distinct-identity control](docs/media/character-swap-male-control.mp4)
+
+## Results and evidence
+
+[Detailed experiments](docs/EXPERIMENTS.md) include successful and unsuccessful variants, parameters, window-level timing, memory definitions, and limitations. Machine-readable measurements are in [results](results).
+
+- **Video + image Character Swap** completed at480×736 and768×1152, two windows /56frames each, on the3070Ti. A separate39-frame male portrait control visibly changed identity. These short tests do not qualify40s identity stability.
+- A prior disk-latent/color experiment completed **40s, 960 frames, 768×768** without OOM. That used the earlier pixel-boundary/color-feedback recipe, not a 40s validation of the new Motion Context recipe.
+- New static tests compare six recipes from the **same first sampled AV window**, four windows each, 480×480.
+- New full-body movement tests cover **480×736** and **768×1152**, four windows and 158 delivered frames. All use a generated, fully clothed adult reference.
+- FFN chunking reduced an isolated large FFN's extra allocations from 966 to 288 MiB; a real 768×768 window saved only about 141 MiB overall. No reliable whole-video speedup is established.
+- Fused modulation changed BF16 rounding and showed no reliable end-to-end benefit. Keep it off while assessing texture drift.
+
+![Static continuation comparison](docs/media/static-comparison.jpg)
+
+![Full-body 480 comparison](docs/media/motion-480-comparison.jpg)
+
+[480p motion video](docs/media/motion-480-refine.mp4) · [768p motion video](docs/media/motion-768-refine.mp4)
+
+## Important limits
+
+- The exporter retains an optional **source soundtrack**. Single-image examples remain silent; generated audio-latent decoding is not implemented.
+- Longer context consumes generated frames and adds conditioning work. A 40s request with these defaults requires more windows than a one-frame boundary recipe.
+- Background metrics use a fixed neutral-background mask. They are not identity/anatomy/perceptual-quality scores. Lower high-frequency energy can also mean blur.
+- Results cover a small number of generated references and seeds. Moving-camera and complex-scene generalization remains unqualified.
+- FFN chunks can change full-model outputs slightly. Fused modulation changes numerical behavior more directly. Both are opt-in.
+- `H3TextureLowVRAM` uses native sampler weight offloading. The nodes add no manual model-cache purge; native ComfyUI residency management still applies. Benchmark setup releases inactive encoders between conditioning and diffusion.
+- The Python benchmark driver supports resuming saved progress. Automatic GUI recovery from a disk manifest is not implemented in this initial version.
+
+## Reproduce
+
+For the **video + image Character Swap** workflow, with the server already running and fixtures in its input folder:
+
+```sh
+python benchmarks/run_character_swap.py \
+  --workflow examples/H3-TextureLab-CharacterSwap-480.api.json \
+  --output /path/to/test-records
+```
+
+Use `--source` and `--reference` to select filenames already in the server input folder; `--duration 0` selects the full source. `configs/CharacterSwap-Male-Control.api.json` is the separate short distinct-identity sanity test.
+
+The following command reproduces the **single-image movement component** tests:
+
+Run with ComfyUI's Python and SageAttention installed for the recorded protocol:
+
+```sh
+CUDA_VISIBLE_DEVICES=0 python benchmarks/run_motion.py \
+  --comfy-root /path/to/ComfyUI \
+  --motion-context-root /path/to/ComfyUI/custom_nodes/ComfyUI-H3-Motion-Context \
+  --output /path/to/experiment-output \
+  --reference examples/inputs/H3_TextureLab_Body_Reference.png \
+  --size 480 --modes raw refine_join
+```
+
+For 768×1152, use `--size 768 --modes refine_join`. Configuration, source hashes, saved AV windows, stage-level timing and progress are recorded in the output directory. Cached conditioning is local trusted PyTorch data; do not load untrusted `.pt` files.
+
+```sh
+python -m unittest discover -s tests -v
+```
+
+GUI/API examples were validated against native ComfyUI. Unit storage fixtures are synthetic and are clearly separated from actual H3 inference results.
+
+## License
+
+GPL-3.0-only for this source release. Upstream source and model weights retain their respective licenses. No model checkpoints, personal input media, credentials, or private user workflows are distributed.

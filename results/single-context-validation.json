@@ -1,0 +1,168 @@
+{
+  "success": true,
+  "cases": [
+    {
+      "window_frames": 39,
+      "cache_mode": "disk",
+      "context_source": "latent",
+      "carry_audio": false,
+      "windows": 4,
+      "delivered_frames": 125,
+      "single_frame_encode_calls": 3
+    },
+    {
+      "window_frames": 39,
+      "cache_mode": "disk",
+      "context_source": "latent",
+      "carry_audio": true,
+      "windows": 4,
+      "delivered_frames": 125,
+      "single_frame_encode_calls": 3
+    },
+    {
+      "window_frames": 39,
+      "cache_mode": "disk",
+      "context_source": "pixels_reencoded",
+      "carry_audio": false,
+      "windows": 4,
+      "delivered_frames": 125,
+      "single_frame_encode_calls": 3
+    },
+    {
+      "window_frames": 39,
+      "cache_mode": "disk",
+      "context_source": "pixels_reencoded",
+      "carry_audio": true,
+      "windows": 4,
+      "delivered_frames": 125,
+      "single_frame_encode_calls": 3
+    },
+    {
+      "window_frames": 39,
+      "cache_mode": "ram",
+      "context_source": "latent",
+      "carry_audio": false,
+      "windows": 4,
+      "delivered_frames": 125,
+      "single_frame_encode_calls": 3
+    },
+    {
+      "window_frames": 39,
+      "cache_mode": "ram",
+      "context_source": "latent",
+      "carry_audio": true,
+      "windows": 4,
+      "delivered_frames": 125,
+      "single_frame_encode_calls": 3
+    },
+    {
+      "window_frames": 39,
+      "cache_mode": "ram",
+      "context_source": "pixels_reencoded",
+      "carry_audio": false,
+      "windows": 4,
+      "delivered_frames": 125,
+      "single_frame_encode_calls": 3
+    },
+    {
+      "window_frames": 39,
+      "cache_mode": "ram",
+      "context_source": "pixels_reencoded",
+      "carry_audio": true,
+      "windows": 4,
+      "delivered_frames": 125,
+      "single_frame_encode_calls": 3
+    },
+    {
+      "window_frames": 56,
+      "cache_mode": "disk",
+      "context_source": "latent",
+      "carry_audio": false,
+      "windows": 3,
+      "delivered_frames": 125,
+      "single_frame_encode_calls": 2
+    },
+    {
+      "window_frames": 56,
+      "cache_mode": "disk",
+      "context_source": "latent",
+      "carry_audio": true,
+      "windows": 3,
+      "delivered_frames": 125,
+      "single_frame_encode_calls": 2
+    },
+    {
+      "window_frames": 56,
+      "cache_mode": "disk",
+      "context_source": "pixels_reencoded",
+      "carry_audio": false,
+      "windows": 3,
+      "delivered_frames": 125,
+      "single_frame_encode_calls": 2
+    },
+    {
+      "window_frames": 56,
+      "cache_mode": "disk",
+      "context_source": "pixels_reencoded",
+      "carry_audio": true,
+      "windows": 3,
+      "delivered_frames": 125,
+      "single_frame_encode_calls": 2
+    },
+    {
+      "window_frames": 56,
+      "cache_mode": "ram",
+      "context_source": "latent",
+      "carry_audio": false,
+      "windows": 3,
+      "delivered_frames": 125,
+      "single_frame_encode_calls": 2
+    },
+    {
+      "window_frames": 56,
+      "cache_mode": "ram",
+      "context_source": "latent",
+      "carry_audio": true,
+      "windows": 3,
+      "delivered_frames": 125,
+      "single_frame_encode_calls": 2
+    },
+    {
+      "window_frames": 56,
+      "cache_mode": "ram",
+      "context_source": "pixels_reencoded",
+      "carry_audio": false,
+      "windows": 3,
+      "delivered_frames": 125,
+      "single_frame_encode_calls": 2
+    },
+    {
+      "window_frames": 56,
+      "cache_mode": "ram",
+      "context_source": "pixels_reencoded",
+      "carry_audio": true,
+      "windows": 3,
+      "delivered_frames": 125,
+      "single_frame_encode_calls": 2
+    }
+  ],
+  "single_frame_trim_and_last_frame_identity": true,
+  "original_references_source_latent_and_mask_preserved": true,
+  "audio_tail_and_grid_alignment_verified": true,
+  "scope": "Native CPU contract with synthetic VAE fixtures. Single-frame mode decodes the previous window and re-encodes its last frame; no H3 inference or quality claim.",
+  "unit_tests_passed": 22,
+  "zero_context_regression_passed": true,
+  "aligned_22_frame_regression_passed": true,
+  "workflow_validation": {
+    "H3-TextureLab-CharacterSwap-768-RAM.api.json": {
+      "valid": true,
+      "error": null,
+      "node_errors": {}
+    },
+    "H3-TextureLab-CharacterSwap-480-RAM.api.json": {
+      "valid": true,
+      "error": null,
+      "node_errors": {}
+    }
+  }
+}

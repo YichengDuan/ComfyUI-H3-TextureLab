@@ -187,3 +187,11 @@ GPL-3.0-only for this source release. Upstream source and model weights retain t
 Set **`context_frames=0`** on **Window Plan** to generate independent windows. Source-video slices, masks and original reference conditioning are retained; Motion Context, previous-window latent loading and Join Match are skipped. All windows are still accumulated in the chosen disk/RAM cache and assembled in order, without discarding overlap. Existing workflows keep their context setting.
 
 Character Swap examples already disable `first_frame_guide`. If that optional switch is enabled, the reference first-frame anchor is applied at the start of **every** independent window. Zero context may limit propagation of previous-window errors, but can cause abrupt pose, texture or color changes at joins; it is **not a proven color-drift fix**. With identical conditioning and a fixed seed, single-image Ref2V independent windows may repeat the same clip. CPU tests verify frame accounting and conditioning preservation; zero-context H3 image quality has not been evaluated.
+
+## One-frame context
+
+Set **`context_frames=1`** on Window Plan to pin the previous window's final decoded frame at frame 0 of the next window. Exactly one leading frame is trimmed at each join; the source-video/mask slices overlap by one frame, and original reference conditioning is retained. Disk and RAM storage both work. Existing workflow settings are unchanged.
+
+**This mode needs a VAE round trip.** The last token of a normal H3 window spans four frames, so it cannot be relabeled as a one-frame raw latent. This mode decodes the previous window and re-encodes only its last frame through upstream Motion Context, regardless of `context_source`. Aligned 5/22/39/56-frame contexts retain their existing raw-latent behavior. If `carry_audio=true`, the existing 18-frame raw audio tail is retained with placement calculated from the original AV window. Character Swap keeps its existing `carry_audio=false` and source-audio guide.
+
+One frame gives an appearance anchor, with less motion information than a longer context. It may show motion discontinuities and VAE reconstruction/color changes; it is not a proven color-drift fix. Validation uses the real upstream node and synthetic CPU VAE fixtures, not an H3 quality test.

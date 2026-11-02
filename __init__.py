@@ -20,7 +20,7 @@ class H3TextureWindowPlan(io.ComfyNode):
         return io.Schema(node_id='H3TextureWindowPlan', display_name='H3 Texture Lab · Window Plan', category='H3 Texture Lab',
             inputs=[io.Int.Input('total_frames', default=158, min=5, max=24000),
                 io.Combo.Input('window_frames', options=['39','56','73','90','107','124'], default='56'),
-                io.Combo.Input('context_frames', options=['0','5','22','39','56'], default='22'),
+                io.Combo.Input('context_frames', options=['0','1','5','22','39','56'], default='22', tooltip='0: independent windows. 1: last decoded frame re-encoded as a guide. 5/22/39/56: aligned raw latent context.'),
                 io.Int.Input('seed', default=28461, min=0, max=0xffffffffffffffff, control_after_generate=io.ControlAfterGenerate.fixed)],
             outputs=[io.Int.Output('frames'),io.Int.Output('stride'),io.Int.Output('iterations'),io.Custom('H3_TEXTURE_WINDOWS').Output('windows')])
 
@@ -56,9 +56,27 @@ class H3TextureMotionGuide(io.ComfyNode):
                 positive=MiniMaxH3AddGuide.execute(positive=positive,latent=target,vae=vae,image=reference[:1],frame_idx=0)[0]
             trim=0
         else:
-            positive,trim=nodes.NODE_CLASS_MAPPINGS['MiniMaxH3MotionContext']().apply(
-                positive,vae,target,str(entry['history_frames']),18,context_latent=context_latent(previous))
-            if context_source=='pixels_reencoded':
+            motion=nodes.NODE_CLASS_MAPPINGS['MiniMaxH3MotionContext']()
+            if entry['history_frames']==1:
+                # A generated tail's final token covers four frames. Decode the
+                # true last pixel frame instead of mislabelling that token as one.
+                positive,trim=motion.apply(positive,vae,target,'1',18,
+                    context_frames=previous['frames'][-1:])
+                if carry_audio:
+                    import importlib
+                    upstream=importlib.import_module(type(motion).__module__)
+                    if upstream.AUDIO_MODE!='timeline' or upstream.ANCHOR_MODE!='head':
+                        raise ValueError('Single-frame audio carry requires upstream timeline/head modes')
+                    audio,steps,overhang=upstream._audio_tail_from_latent(context_latent(previous),18)
+                    scale=upstream.FRAME_RESCALE
+                    end_frame=round(scale+overhang)/scale
+                    keyframe={'resolved_frame_index':end_frame-steps/scale,'audio_latent':audio}
+                    positive=[[embedding,{**metadata,'minimax_keyframes':[
+                        *metadata.get('minimax_keyframes',[]),dict(keyframe)]}] for embedding,metadata in positive]
+            else:
+                positive,trim=motion.apply(positive,vae,target,str(entry['history_frames']),18,
+                    context_latent=context_latent(previous))
+            if context_source=='pixels_reencoded' and entry['history_frames']!=1:
                 encoded=vae.encode(previous['frames'][-trim:])
                 changed=[]
                 for embedding,metadata in positive:

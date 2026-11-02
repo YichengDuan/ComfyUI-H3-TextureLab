@@ -64,7 +64,7 @@
     "save_video.py": "877b84766293a408f36fcb16f95a89dbc2b614d72eca626fe6b675fcdd7d4996",
     "__init__.py": "9eb1989a73d9710774d92163287b3fcd0cc97e1a4a1942ca3eb81fff8c871f76",
     "tests/test_ram.py": "7bc2e1286f788170d1a08753fc4e28de5216a40d2369a3272112f617d53d2ca1",
-    "benchmarks/verify_cleanup.py": "3b4620605f0437a44d7522fbd8207e3257a2d921eb2dd7fcb64b640953e2ba39"
+    "benchmarks/verify_cleanup.py": "abbacb9519ebffe8e8372f72ade11729adeecae59a384c0f1b0030c02aa4d25e"
   },
   "native_workflow_validation": {
     "H3-TextureLab-CharacterSwap-768-RAM.api.json": {
@@ -77,5 +77,53 @@
       "error": null,
       "node_errors": {}
     }
-  }
+  },
+  "legacy_cache_mode_input_omitted_passed": true,
+  "legacy_and_ram_native_runs": [
+    {
+      "cache_mode": "disk",
+      "cleanup_cache": false,
+      "success": true,
+      "frames": 56,
+      "audio_decodes": true,
+      "new_cache_directories_retained": 1,
+      "saved_file": "cleanup-smoke_00001_.mp4"
+    },
+    {
+      "cache_mode": "disk",
+      "cleanup_cache": true,
+      "success": true,
+      "frames": 56,
+      "audio_decodes": true,
+      "new_cache_directories_retained": 0,
+      "saved_file": "cleanup-smoke_00002_.mp4"
+    },
+    {
+      "cache_mode": "disk",
+      "cleanup_cache": true,
+      "success": true,
+      "frames": 56,
+      "audio_decodes": true,
+      "new_cache_directories_retained": 0,
+      "saved_file": "cleanup-smoke_00003_.mp4"
+    },
+    {
+      "cache_mode": "ram",
+      "cleanup_cache": false,
+      "success": true,
+      "frames": 56,
+      "audio_decodes": true,
+      "new_cache_directories_retained": 0,
+      "saved_file": "cleanup-smoke_00004_.mp4"
+    },
+    {
+      "cache_mode": "ram",
+      "cleanup_cache": true,
+      "success": true,
+      "frames": 56,
+      "audio_decodes": true,
+      "new_cache_directories_retained": 0,
+      "saved_file": "cleanup-smoke_00005_.mp4"
+    }
+  ]
 }

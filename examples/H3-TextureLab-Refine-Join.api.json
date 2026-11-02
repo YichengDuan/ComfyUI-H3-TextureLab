@@ -1,0 +1,352 @@
+{
+  "model": {
+    "class_type": "UNETLoader",
+    "inputs": {
+      "unet_name": "minimax_h3_ref2va_pruned_int8_convrot.safetensors",
+      "weight_dtype": "default"
+    }
+  },
+  "shift": {
+    "class_type": "MiniMaxH3SigmaShift",
+    "inputs": {
+      "shift_video": 12.0,
+      "shift_audio": 3.0,
+      "model": [
+        "model",
+        0
+      ]
+    }
+  },
+  "turbo": {
+    "class_type": "LoraLoaderModelOnly",
+    "inputs": {
+      "lora_name": "minimax_h3_ref2v_turbo_8step_v1.1_768p_comfyui_bf16.safetensors",
+      "strength_model": 1.0,
+      "model": [
+        "shift",
+        0
+      ]
+    }
+  },
+  "clip": {
+    "class_type": "CLIPLoader",
+    "inputs": {
+      "clip_name": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+      "type": "minimax",
+      "device": "default"
+    }
+  },
+  "vae": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "minimax_h3_video_vae_int8_convrot.safetensors"
+    }
+  },
+  "reference": {
+    "class_type": "LoadImage",
+    "inputs": {
+      "image": "H3_Ref2V_Color_Reference.png"
+    }
+  },
+  "conditioning": {
+    "class_type": "MiniMaxH3ReferenceToVideo",
+    "inputs": {
+      "prompt": "subject_definitions:\n<Picture 1> is the only reference image. Preserve this adult woman's facial identity, short brown hair, natural skin tone and texture, blue collared shirt and white ceramic mug.\nsummary:\nA continuous realistic 20-second medium portrait shot of the same woman in the same room, holding the white mug with both hands.\ndetailed_description:\nThe camera remains locked off at eye level with the same composition and neutral gray background. She breathes gently, blinks naturally, makes a very slight warm smile and slowly brings the mug a few centimeters closer to her face, then holds it comfortably. Motion is subtle and anatomically natural. Keep the same blue shirt hue, skin tone, white mug, neutral background, soft daylight, white balance and exposure throughout. One continuous shot with consistent photographic color and lighting.\noverall_soundscape:\nQuiet indoor room tone, no speech or music.",
+      "width": 480,
+      "height": 480,
+      "length": 56,
+      "ref_image_size": "match",
+      "clip": [
+        "clip",
+        0
+      ],
+      "vae": [
+        "vae",
+        0
+      ],
+      "ref_images.ref_image_0": [
+        "reference",
+        0
+      ]
+    }
+  },
+  "plan": {
+    "class_type": "H3TextureWindowPlan",
+    "inputs": {
+      "total_frames": 158,
+      "window_frames": "56",
+      "context_frames": "22",
+      "seed": 28461
+    }
+  },
+  "start": {
+    "class_type": "StartLoop",
+    "inputs": {
+      "mode": "simple",
+      "cache_iterations": false,
+      "mode.num_iterations": [
+        "plan",
+        2
+      ]
+    }
+  },
+  "guide": {
+    "class_type": "H3TextureMotionGuide",
+    "inputs": {
+      "positive": [
+        "conditioning",
+        0
+      ],
+      "latent": [
+        "conditioning",
+        1
+      ],
+      "vae": [
+        "vae",
+        0
+      ],
+      "reference": [
+        "reference",
+        0
+      ],
+      "windows": [
+        "plan",
+        3
+      ],
+      "iteration_index": [
+        "start",
+        0
+      ],
+      "previous": [
+        "start",
+        4
+      ],
+      "context_source": "latent"
+    }
+  },
+  "noise": {
+    "class_type": "RandomNoise",
+    "inputs": {
+      "noise_seed": [
+        "guide",
+        3
+      ]
+    }
+  },
+  "guider": {
+    "class_type": "CFGGuider",
+    "inputs": {
+      "cfg": 1.0,
+      "model": [
+        "workspace",
+        0
+      ],
+      "positive": [
+        "guide",
+        0
+      ],
+      "negative": [
+        "guide",
+        0
+      ]
+    }
+  },
+  "sampler": {
+    "class_type": "KSamplerSelect",
+    "inputs": {
+      "sampler_name": "er_sde"
+    }
+  },
+  "schedule": {
+    "class_type": "BasicScheduler",
+    "inputs": {
+      "scheduler": "normal",
+      "steps": 8,
+      "denoise": 1.0,
+      "model": [
+        "turbo",
+        0
+      ]
+    }
+  },
+  "sample": {
+    "class_type": "SamplerCustomAdvanced",
+    "inputs": {
+      "noise": [
+        "noise",
+        0
+      ],
+      "guider": [
+        "guider",
+        0
+      ],
+      "sampler": [
+        "sampler",
+        0
+      ],
+      "sigmas": [
+        "schedule",
+        0
+      ],
+      "latent_image": [
+        "guide",
+        1
+      ]
+    }
+  },
+  "store": {
+    "class_type": "H3TextureAppendWindow",
+    "inputs": {
+      "av_latent": [
+        "blend",
+        0
+      ],
+      "vae": [
+        "vae",
+        0
+      ],
+      "window": [
+        "guide",
+        2
+      ],
+      "previous": [
+        "start",
+        4
+      ],
+      "drift_correction": "join_match"
+    }
+  },
+  "end": {
+    "class_type": "EndLoop",
+    "inputs": {
+      "accumulate": false,
+      "output_value": [
+        "store",
+        0
+      ],
+      "next_iteration_value": [
+        "store",
+        0
+      ]
+    }
+  },
+  "finish": {
+    "class_type": "H3TextureFinishVideo",
+    "inputs": {
+      "state": [
+        "end",
+        0
+      ],
+      "crf": 16
+    }
+  },
+  "save": {
+    "class_type": "SaveVideo",
+    "inputs": {
+      "filename_prefix": "h3-relay/texture-lab/H3-TextureLab-Refine-Join",
+      "format": "mp4",
+      "format.codec": "h264",
+      "format.codec.encoding": "auto",
+      "video": [
+        "finish",
+        0
+      ]
+    }
+  },
+  "workspace": {
+    "class_type": "H3TextureLowVRAM",
+    "inputs": {
+      "model": [
+        "turbo",
+        0
+      ],
+      "enabled": true
+    }
+  },
+  "split": {
+    "class_type": "SplitSigmas",
+    "inputs": {
+      "step": 7,
+      "sigmas": [
+        "schedule",
+        0
+      ]
+    }
+  },
+  "refnoise": {
+    "class_type": "RandomNoise",
+    "inputs": {
+      "noise_seed": 28462
+    }
+  },
+  "refguider": {
+    "class_type": "CFGGuider",
+    "inputs": {
+      "cfg": 1.0,
+      "model": [
+        "workspace",
+        0
+      ],
+      "positive": [
+        "conditioning",
+        0
+      ],
+      "negative": [
+        "conditioning",
+        0
+      ]
+    }
+  },
+  "refsample": {
+    "class_type": "SamplerCustomAdvanced",
+    "inputs": {
+      "noise": [
+        "refnoise",
+        0
+      ],
+      "guider": [
+        "refguider",
+        0
+      ],
+      "sampler": [
+        "sampler",
+        0
+      ],
+      "sigmas": [
+        "split",
+        1
+      ],
+      "latent_image": [
+        "sample",
+        0
+      ]
+    }
+  },
+  "blend": {
+    "class_type": "MiniMaxH3RefineBlend",
+    "inputs": {
+      "blend_frames": 5,
+      "audio": "original",
+      "use_refine": [
+        "guide",
+        5
+      ],
+      "original": [
+        "sample",
+        0
+      ],
+      "hold_frames": [
+        "guide",
+        4
+      ],
+      "clip_index": [
+        "start",
+        0
+      ],
+      "refined": [
+        "refsample",
+        0
+      ]
+    }
+  }
+}

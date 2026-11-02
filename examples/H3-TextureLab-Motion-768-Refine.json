@@ -1,0 +1,1635 @@
+{
+  "id": "e2b39c4e-44a8-4aa7-aee6-a1bfc63d27df",
+  "revision": 0,
+  "last_node_id": 25,
+  "last_link_id": 46,
+  "nodes": [
+    {
+      "id": "model",
+      "type": "UNETLoader",
+      "title": "H3 Ref2V \u00b7 INT8",
+      "pos": [
+        0,
+        0
+      ],
+      "size": [
+        340,
+        160
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            1
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "UNETLoader"
+      },
+      "widgets_values": [
+        "minimax_h3_ref2va_pruned_int8_convrot.safetensors",
+        "default"
+      ]
+    },
+    {
+      "id": "shift",
+      "type": "MiniMaxH3SigmaShift",
+      "title": "H3 sigma shift",
+      "pos": [
+        390,
+        0
+      ],
+      "size": [
+        340,
+        160
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 1
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            2
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "MiniMaxH3SigmaShift"
+      },
+      "widgets_values": [
+        12.0,
+        3.0
+      ]
+    },
+    {
+      "id": "turbo",
+      "type": "LoraLoaderModelOnly",
+      "title": "Ref2V Turbo \u00b7 8 steps",
+      "pos": [
+        780,
+        0
+      ],
+      "size": [
+        340,
+        160
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 2
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            17,
+            30
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoraLoaderModelOnly"
+      },
+      "widgets_values": [
+        "minimax_h3_ref2v_turbo_8step_v1.1_768p_comfyui_bf16.safetensors",
+        1.0
+      ]
+    },
+    {
+      "id": "clip",
+      "type": "CLIPLoader",
+      "title": "H3 reference text encoder",
+      "pos": [
+        0,
+        220
+      ],
+      "size": [
+        340,
+        160
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "CLIP",
+          "type": "CLIP",
+          "links": [
+            3
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CLIPLoader"
+      },
+      "widgets_values": [
+        "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+        "minimax",
+        "default"
+      ]
+    },
+    {
+      "id": "vae",
+      "type": "VAELoader",
+      "title": "H3 video VAE",
+      "pos": [
+        0,
+        440
+      ],
+      "size": [
+        340,
+        160
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "VAE",
+          "type": "VAE",
+          "links": [
+            4,
+            9,
+            23
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VAELoader"
+      },
+      "widgets_values": [
+        "minimax_h3_video_vae_int8_convrot.safetensors"
+      ]
+    },
+    {
+      "id": "reference",
+      "type": "LoadImage",
+      "title": "Only reference image",
+      "pos": [
+        0,
+        650
+      ],
+      "size": [
+        340,
+        450
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            5,
+            10
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": [],
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadImage"
+      },
+      "widgets_values": [
+        "H3_TextureLab_Body_Reference.png",
+        "image"
+      ]
+    },
+    {
+      "id": "conditioning",
+      "type": "MiniMaxH3ReferenceToVideo",
+      "title": "Persistent original reference \u00b7 encode once",
+      "pos": [
+        390,
+        240
+      ],
+      "size": [
+        470,
+        430
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 3
+        },
+        {
+          "name": "vae",
+          "type": "VAE",
+          "link": 4
+        },
+        {
+          "name": "ref_images.ref_image_0",
+          "type": "IMAGE",
+          "link": 5
+        }
+      ],
+      "outputs": [
+        {
+          "name": "positive",
+          "type": "CONDITIONING",
+          "links": [
+            7,
+            40,
+            41
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "latent",
+          "type": "LATENT",
+          "links": [
+            8
+          ],
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "MiniMaxH3ReferenceToVideo"
+      },
+      "widgets_values": [
+        "subject_definitions:\n<Picture 1> is the only reference. Preserve the same adult woman's facial identity, short dark brown bob hair, natural freckles and skin texture, blue collared long-sleeved shirt, beige trousers and white sneakers.\nsummary:\nA continuous realistic full-body studio video. The woman gently walks in place with clear alternating steps, natural arm swing and subtle coordinated torso turns.\ndetailed_description:\nThe camera stays fixed at eye level and shows her complete head, both hands and both feet throughout. She repeatedly lifts one heel, takes a small relaxed step in place, transfers her weight and alternates to the other leg. Her arms swing naturally opposite her legs; her shoulders and torso turn gently left and right with the stepping rhythm. The motion is clearly visible, balanced and anatomically natural. Keep the same body proportions, face, clothing weave, buttons, seams and wrinkles. The neutral light gray studio background, soft even lighting, exposure and white balance remain stable. One continuous take with no camera cuts or zooms.\noverall_soundscape:\nSoft natural sneaker footsteps on the studio floor. No speech or music.",
+        768,
+        1152,
+        56,
+        "match"
+      ]
+    },
+    {
+      "id": "plan",
+      "type": "H3TextureWindowPlan",
+      "title": "4 windows \u00b7 22-frame native context",
+      "pos": [
+        900,
+        240
+      ],
+      "size": [
+        340,
+        160
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "frames",
+          "type": "INT",
+          "links": [],
+          "slot_index": 0
+        },
+        {
+          "name": "stride",
+          "type": "INT",
+          "links": [],
+          "slot_index": 1
+        },
+        {
+          "name": "iterations",
+          "type": "INT",
+          "links": [
+            6
+          ],
+          "slot_index": 2
+        },
+        {
+          "name": "windows",
+          "type": "H3_TEXTURE_WINDOWS",
+          "links": [
+            11
+          ],
+          "slot_index": 3
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "H3TextureWindowPlan"
+      },
+      "widgets_values": [
+        158,
+        "56",
+        "22",
+        41729,
+        "fixed"
+      ]
+    },
+    {
+      "id": "start",
+      "type": "StartLoop",
+      "title": "Start sliding windows",
+      "pos": [
+        1300,
+        240
+      ],
+      "size": [
+        340,
+        160
+      ],
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "mode.num_iterations",
+          "type": "INT",
+          "link": 6
+        }
+      ],
+      "outputs": [
+        {
+          "name": "iteration_index",
+          "type": "INT",
+          "links": [
+            12,
+            34
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "is_first",
+          "type": "BOOLEAN",
+          "links": [],
+          "slot_index": 1
+        },
+        {
+          "name": "is_last",
+          "type": "BOOLEAN",
+          "links": [],
+          "slot_index": 2
+        },
+        {
+          "name": "list_item",
+          "type": "*",
+          "links": [],
+          "slot_index": 3
+        },
+        {
+          "name": "current_iteration_value",
+          "type": "H3_TEXTURE_STATE",
+          "links": [
+            13,
+            25
+          ],
+          "slot_index": 4
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "StartLoop"
+      },
+      "widgets_values": [
+        "simple",
+        4,
+        false
+      ]
+    },
+    {
+      "id": "guide",
+      "type": "H3TextureMotionGuide",
+      "title": "Raw AV latent carry \u00b7 no VAE round trip",
+      "pos": [
+        1720,
+        240
+      ],
+      "size": [
+        340,
+        160
+      ],
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "positive",
+          "type": "CONDITIONING",
+          "link": 7
+        },
+        {
+          "name": "latent",
+          "type": "LATENT",
+          "link": 8
+        },
+        {
+          "name": "vae",
+          "type": "VAE",
+          "link": 9
+        },
+        {
+          "name": "reference",
+          "type": "IMAGE",
+          "link": 10
+        },
+        {
+          "name": "windows",
+          "type": "H3_TEXTURE_WINDOWS",
+          "link": 11
+        },
+        {
+          "name": "iteration_index",
+          "type": "INT",
+          "link": 12
+        },
+        {
+          "name": "previous",
+          "type": "H3_TEXTURE_STATE",
+          "link": 13
+        }
+      ],
+      "outputs": [
+        {
+          "name": "positive",
+          "type": "CONDITIONING",
+          "links": [
+            15,
+            16
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "latent",
+          "type": "LATENT",
+          "links": [
+            22
+          ],
+          "slot_index": 1
+        },
+        {
+          "name": "window",
+          "type": "H3_TEXTURE_WINDOW",
+          "links": [
+            24
+          ],
+          "slot_index": 2
+        },
+        {
+          "name": "seed",
+          "type": "INT",
+          "links": [
+            14
+          ],
+          "slot_index": 3
+        },
+        {
+          "name": "trim_frames",
+          "type": "INT",
+          "links": [
+            33
+          ],
+          "slot_index": 4
+        },
+        {
+          "name": "has_context",
+          "type": "BOOLEAN",
+          "links": [
+            46
+          ],
+          "slot_index": 5
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "H3TextureMotionGuide"
+      },
+      "widgets_values": [
+        0,
+        "latent"
+      ]
+    },
+    {
+      "id": "noise",
+      "type": "RandomNoise",
+      "title": "Window seed",
+      "pos": [
+        2150,
+        20
+      ],
+      "size": [
+        340,
+        160
+      ],
+      "flags": {},
+      "order": 11,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "noise_seed",
+          "type": "INT",
+          "link": 14
+        }
+      ],
+      "outputs": [
+        {
+          "name": "NOISE",
+          "type": "NOISE",
+          "links": [
+            18
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "RandomNoise"
+      },
+      "widgets_values": [
+        41729,
+        "fixed"
+      ]
+    },
+    {
+      "id": "guider",
+      "type": "CFGGuider",
+      "title": "CFG 1 \u00b7 Turbo",
+      "pos": [
+        2150,
+        230
+      ],
+      "size": [
+        340,
+        160
+      ],
+      "flags": {},
+      "order": 12,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 31
+        },
+        {
+          "name": "positive",
+          "type": "CONDITIONING",
+          "link": 15
+        },
+        {
+          "name": "negative",
+          "type": "CONDITIONING",
+          "link": 16
+        }
+      ],
+      "outputs": [
+        {
+          "name": "GUIDER",
+          "type": "GUIDER",
+          "links": [
+            19
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CFGGuider"
+      },
+      "widgets_values": [
+        1.0
+      ]
+    },
+    {
+      "id": "sampler",
+      "type": "KSamplerSelect",
+      "title": "er_sde sampler",
+      "pos": [
+        1720,
+        20
+      ],
+      "size": [
+        340,
+        160
+      ],
+      "flags": {},
+      "order": 13,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "SAMPLER",
+          "type": "SAMPLER",
+          "links": [
+            20,
+            43
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "KSamplerSelect"
+      },
+      "widgets_values": [
+        "er_sde"
+      ]
+    },
+    {
+      "id": "schedule",
+      "type": "BasicScheduler",
+      "title": "8-step simple schedule",
+      "pos": [
+        1300,
+        20
+      ],
+      "size": [
+        340,
+        160
+      ],
+      "flags": {},
+      "order": 14,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 17
+        }
+      ],
+      "outputs": [
+        {
+          "name": "SIGMAS",
+          "type": "SIGMAS",
+          "links": [
+            21,
+            37
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "BasicScheduler"
+      },
+      "widgets_values": [
+        "simple",
+        8,
+        1.0
+      ]
+    },
+    {
+      "id": "sample",
+      "type": "SamplerCustomAdvanced",
+      "title": "Generate current window",
+      "pos": [
+        2540,
+        240
+      ],
+      "size": [
+        340,
+        160
+      ],
+      "flags": {},
+      "order": 15,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "noise",
+          "type": "NOISE",
+          "link": 18
+        },
+        {
+          "name": "guider",
+          "type": "GUIDER",
+          "link": 19
+        },
+        {
+          "name": "sampler",
+          "type": "SAMPLER",
+          "link": 20
+        },
+        {
+          "name": "sigmas",
+          "type": "SIGMAS",
+          "link": 21
+        },
+        {
+          "name": "latent_image",
+          "type": "LATENT",
+          "link": 22
+        }
+      ],
+      "outputs": [
+        {
+          "name": "output",
+          "type": "LATENT",
+          "links": [
+            32,
+            45
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "denoised_output",
+          "type": "LATENT",
+          "links": [],
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "SamplerCustomAdvanced"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": "store",
+      "type": "H3TextureAppendWindow",
+      "title": "Save native AV context and video latent",
+      "pos": [
+        3340,
+        240
+      ],
+      "size": [
+        340,
+        160
+      ],
+      "flags": {},
+      "order": 17,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "av_latent",
+          "type": "LATENT",
+          "link": 36
+        },
+        {
+          "name": "vae",
+          "type": "VAE",
+          "link": 23
+        },
+        {
+          "name": "window",
+          "type": "H3_TEXTURE_WINDOW",
+          "link": 24
+        },
+        {
+          "name": "previous",
+          "type": "H3_TEXTURE_STATE",
+          "link": 25
+        }
+      ],
+      "outputs": [
+        {
+          "name": "state",
+          "type": "H3_TEXTURE_STATE",
+          "links": [
+            26,
+            27
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "H3TextureAppendWindow"
+      },
+      "widgets_values": [
+        "join_match"
+      ]
+    },
+    {
+      "id": "end",
+      "type": "EndLoop",
+      "title": "Finish sliding windows",
+      "pos": [
+        3740,
+        240
+      ],
+      "size": [
+        340,
+        160
+      ],
+      "flags": {},
+      "order": 18,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "output_value",
+          "type": "H3_TEXTURE_STATE",
+          "link": 26
+        },
+        {
+          "name": "next_iteration_value",
+          "type": "H3_TEXTURE_STATE",
+          "link": 27
+        }
+      ],
+      "outputs": [
+        {
+          "name": "outputs",
+          "type": "H3_TEXTURE_STATE",
+          "links": [
+            28
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "EndLoop"
+      },
+      "widgets_values": [
+        false
+      ]
+    },
+    {
+      "id": "finish",
+      "type": "H3TextureFinishVideo",
+      "title": "Stream final decode \u00b7 silent MP4",
+      "pos": [
+        4140,
+        240
+      ],
+      "size": [
+        340,
+        160
+      ],
+      "flags": {},
+      "order": 19,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "state",
+          "type": "H3_TEXTURE_STATE",
+          "link": 28
+        }
+      ],
+      "outputs": [
+        {
+          "name": "video",
+          "type": "VIDEO",
+          "links": [
+            29
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "report",
+          "type": "STRING",
+          "links": [],
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "H3TextureFinishVideo"
+      },
+      "widgets_values": [
+        16
+      ]
+    },
+    {
+      "id": "save",
+      "type": "SaveVideo",
+      "title": "H3-TextureLab-Motion-768-Refine",
+      "pos": [
+        4540,
+        240
+      ],
+      "size": [
+        340,
+        160
+      ],
+      "flags": {},
+      "order": 20,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "video",
+          "type": "VIDEO",
+          "link": 29
+        }
+      ],
+      "outputs": [
+        {
+          "name": "video",
+          "type": "VIDEO",
+          "links": [],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "SaveVideo"
+      },
+      "widgets_values": [
+        "h3-relay/texture-lab/H3-TextureLab-Motion-768-Refine",
+        "mp4",
+        "h264",
+        "auto",
+        "auto"
+      ]
+    },
+    {
+      "id": "workspace",
+      "type": "H3TextureLowVRAM",
+      "title": "Native weight offload \u00b7 small GPU",
+      "pos": [
+        1730,
+        880
+      ],
+      "size": [
+        340,
+        170
+      ],
+      "flags": {},
+      "order": 21,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 30
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            31,
+            39
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "H3TextureLowVRAM"
+      },
+      "widgets_values": [
+        true
+      ]
+    },
+    {
+      "id": "split",
+      "type": "SplitSigmas",
+      "title": "Last native sigma interval",
+      "pos": [
+        1300,
+        1230
+      ],
+      "size": [
+        340,
+        190
+      ],
+      "flags": {},
+      "order": 20,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "sigmas",
+          "type": "SIGMAS",
+          "link": 37
+        },
+        {
+          "name": "step",
+          "type": "INT",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "high_sigmas",
+          "type": "SIGMAS",
+          "links": [],
+          "slot_index": 0
+        },
+        {
+          "name": "low_sigmas",
+          "type": "SIGMAS",
+          "links": [
+            44
+          ],
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "SplitSigmas"
+      },
+      "widgets_values": [
+        7
+      ]
+    },
+    {
+      "id": "refnoise",
+      "type": "RandomNoise",
+      "title": "Independent refine noise",
+      "pos": [
+        2150,
+        1240
+      ],
+      "size": [
+        340,
+        190
+      ],
+      "flags": {},
+      "order": 21,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "noise_seed",
+          "type": "INT",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "NOISE",
+          "type": "NOISE",
+          "links": [
+            38
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "RandomNoise"
+      },
+      "widgets_values": [
+        41730,
+        "fixed"
+      ]
+    },
+    {
+      "id": "refguider",
+      "type": "CFGGuider",
+      "title": "Plain original-reference conditioning",
+      "pos": [
+        2150,
+        1490
+      ],
+      "size": [
+        340,
+        190
+      ],
+      "flags": {},
+      "order": 22,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 39
+        },
+        {
+          "name": "positive",
+          "type": "CONDITIONING",
+          "link": 40
+        },
+        {
+          "name": "negative",
+          "type": "CONDITIONING",
+          "link": 41
+        }
+      ],
+      "outputs": [
+        {
+          "name": "GUIDER",
+          "type": "GUIDER",
+          "links": [
+            42
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CFGGuider"
+      },
+      "widgets_values": [
+        1.0
+      ]
+    },
+    {
+      "id": "refsample",
+      "type": "SamplerCustomAdvanced",
+      "title": "Optional one-step reference refresh",
+      "pos": [
+        2550,
+        1240
+      ],
+      "size": [
+        340,
+        190
+      ],
+      "flags": {},
+      "order": 23,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "noise",
+          "type": "NOISE",
+          "link": 38
+        },
+        {
+          "name": "guider",
+          "type": "GUIDER",
+          "link": 42
+        },
+        {
+          "name": "sampler",
+          "type": "SAMPLER",
+          "link": 43
+        },
+        {
+          "name": "sigmas",
+          "type": "SIGMAS",
+          "link": 44
+        },
+        {
+          "name": "latent_image",
+          "type": "LATENT",
+          "link": 45
+        }
+      ],
+      "outputs": [
+        {
+          "name": "output",
+          "type": "LATENT",
+          "links": [
+            35
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "denoised_output",
+          "type": "LATENT",
+          "links": [],
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "SamplerCustomAdvanced"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": "blend",
+      "type": "MiniMaxH3RefineBlend",
+      "title": "Optional refine \u00b7 preserve pinned head",
+      "pos": [
+        2940,
+        900
+      ],
+      "size": [
+        340,
+        190
+      ],
+      "flags": {},
+      "order": 24,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "original",
+          "type": "LATENT",
+          "link": 32
+        },
+        {
+          "name": "hold_frames",
+          "type": "INT",
+          "link": 33
+        },
+        {
+          "name": "clip_index",
+          "type": "INT",
+          "link": 34
+        },
+        {
+          "name": "refined",
+          "type": "LATENT",
+          "link": 35
+        },
+        {
+          "name": "use_refine",
+          "type": "BOOLEAN",
+          "link": 46
+        }
+      ],
+      "outputs": [
+        {
+          "name": "latent",
+          "type": "LATENT",
+          "links": [
+            36
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "MiniMaxH3RefineBlend"
+      },
+      "widgets_values": [
+        22,
+        5,
+        "original",
+        true,
+        0
+      ]
+    }
+  ],
+  "links": [
+    [
+      1,
+      "model",
+      0,
+      "shift",
+      0,
+      "MODEL"
+    ],
+    [
+      2,
+      "shift",
+      0,
+      "turbo",
+      0,
+      "MODEL"
+    ],
+    [
+      3,
+      "clip",
+      0,
+      "conditioning",
+      0,
+      "CLIP"
+    ],
+    [
+      4,
+      "vae",
+      0,
+      "conditioning",
+      1,
+      "VAE"
+    ],
+    [
+      5,
+      "reference",
+      0,
+      "conditioning",
+      2,
+      "IMAGE"
+    ],
+    [
+      6,
+      "plan",
+      2,
+      "start",
+      0,
+      "INT"
+    ],
+    [
+      7,
+      "conditioning",
+      0,
+      "guide",
+      0,
+      "CONDITIONING"
+    ],
+    [
+      8,
+      "conditioning",
+      1,
+      "guide",
+      1,
+      "LATENT"
+    ],
+    [
+      9,
+      "vae",
+      0,
+      "guide",
+      2,
+      "VAE"
+    ],
+    [
+      10,
+      "reference",
+      0,
+      "guide",
+      3,
+      "IMAGE"
+    ],
+    [
+      11,
+      "plan",
+      3,
+      "guide",
+      4,
+      "H3_TEXTURE_WINDOWS"
+    ],
+    [
+      12,
+      "start",
+      0,
+      "guide",
+      5,
+      "INT"
+    ],
+    [
+      13,
+      "start",
+      4,
+      "guide",
+      6,
+      "H3_TEXTURE_STATE"
+    ],
+    [
+      14,
+      "guide",
+      3,
+      "noise",
+      0,
+      "INT"
+    ],
+    [
+      15,
+      "guide",
+      0,
+      "guider",
+      1,
+      "CONDITIONING"
+    ],
+    [
+      16,
+      "guide",
+      0,
+      "guider",
+      2,
+      "CONDITIONING"
+    ],
+    [
+      17,
+      "turbo",
+      0,
+      "schedule",
+      0,
+      "MODEL"
+    ],
+    [
+      18,
+      "noise",
+      0,
+      "sample",
+      0,
+      "NOISE"
+    ],
+    [
+      19,
+      "guider",
+      0,
+      "sample",
+      1,
+      "GUIDER"
+    ],
+    [
+      20,
+      "sampler",
+      0,
+      "sample",
+      2,
+      "SAMPLER"
+    ],
+    [
+      21,
+      "schedule",
+      0,
+      "sample",
+      3,
+      "SIGMAS"
+    ],
+    [
+      22,
+      "guide",
+      1,
+      "sample",
+      4,
+      "LATENT"
+    ],
+    [
+      23,
+      "vae",
+      0,
+      "store",
+      1,
+      "VAE"
+    ],
+    [
+      24,
+      "guide",
+      2,
+      "store",
+      2,
+      "H3_TEXTURE_WINDOW"
+    ],
+    [
+      25,
+      "start",
+      4,
+      "store",
+      3,
+      "H3_TEXTURE_STATE"
+    ],
+    [
+      26,
+      "store",
+      0,
+      "end",
+      0,
+      "H3_TEXTURE_STATE"
+    ],
+    [
+      27,
+      "store",
+      0,
+      "end",
+      1,
+      "H3_TEXTURE_STATE"
+    ],
+    [
+      28,
+      "end",
+      0,
+      "finish",
+      0,
+      "H3_TEXTURE_STATE"
+    ],
+    [
+      29,
+      "finish",
+      0,
+      "save",
+      0,
+      "VIDEO"
+    ],
+    [
+      30,
+      "turbo",
+      0,
+      "workspace",
+      0,
+      "MODEL"
+    ],
+    [
+      31,
+      "workspace",
+      0,
+      "guider",
+      0,
+      "MODEL"
+    ],
+    [
+      32,
+      "sample",
+      0,
+      "blend",
+      0,
+      "LATENT"
+    ],
+    [
+      33,
+      "guide",
+      4,
+      "blend",
+      1,
+      "INT"
+    ],
+    [
+      34,
+      "start",
+      0,
+      "blend",
+      2,
+      "INT"
+    ],
+    [
+      35,
+      "refsample",
+      0,
+      "blend",
+      3,
+      "LATENT"
+    ],
+    [
+      36,
+      "blend",
+      0,
+      "store",
+      0,
+      "LATENT"
+    ],
+    [
+      37,
+      "schedule",
+      0,
+      "split",
+      0,
+      "SIGMAS"
+    ],
+    [
+      38,
+      "refnoise",
+      0,
+      "refsample",
+      0,
+      "NOISE"
+    ],
+    [
+      39,
+      "workspace",
+      0,
+      "refguider",
+      0,
+      "MODEL"
+    ],
+    [
+      40,
+      "conditioning",
+      0,
+      "refguider",
+      1,
+      "CONDITIONING"
+    ],
+    [
+      41,
+      "conditioning",
+      0,
+      "refguider",
+      2,
+      "CONDITIONING"
+    ],
+    [
+      42,
+      "refguider",
+      0,
+      "refsample",
+      1,
+      "GUIDER"
+    ],
+    [
+      43,
+      "sampler",
+      0,
+      "refsample",
+      2,
+      "SAMPLER"
+    ],
+    [
+      44,
+      "split",
+      1,
+      "refsample",
+      3,
+      "SIGMAS"
+    ],
+    [
+      45,
+      "sample",
+      0,
+      "refsample",
+      4,
+      "LATENT"
+    ],
+    [
+      46,
+      "guide",
+      5,
+      "blend",
+      4,
+      "BOOLEAN"
+    ]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.22,
+      "offset": [
+        80,
+        80
+      ]
+    }
+  },
+  "version": 0.4
+}

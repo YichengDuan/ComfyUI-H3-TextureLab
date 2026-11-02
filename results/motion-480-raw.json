@@ -1,0 +1,83 @@
+{
+  "mode": "raw",
+  "python": "3.12.11",
+  "torch": "2.15.0+cu132",
+  "cuda": "13.2",
+  "gpu": "NVIDIA GeForce RTX 3070 Ti",
+  "models": {
+    "diffusion": "minimax_h3_ref2va_pruned_int8_convrot.safetensors",
+    "lora": "minimax_h3_ref2v_turbo_8step_v1.1_768p_comfyui_bf16.safetensors",
+    "video_vae": "minimax_h3_video_vae_int8_convrot.safetensors",
+    "text_encoder": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors"
+  },
+  "reference_sha256": "21194e1a80083c96382dd8008ac87025d556b32b6c280001c1008b1027252edc",
+  "prompt": "subject_definitions:\n<Picture 1> is the only reference. Preserve the same adult woman's facial identity, short dark brown bob hair, natural freckles and skin texture, blue collared long-sleeved shirt, beige trousers and white sneakers.\nsummary:\nA continuous realistic full-body studio video. The woman gently walks in place with clear alternating steps, natural arm swing and subtle coordinated torso turns.\ndetailed_description:\nThe camera stays fixed at eye level and shows her complete head, both hands and both feet throughout. She repeatedly lifts one heel, takes a small relaxed step in place, transfers her weight and alternates to the other leg. Her arms swing naturally opposite her legs; her shoulders and torso turn gently left and right with the stepping rhythm. The motion is clearly visible, balanced and anatomically natural. Keep the same body proportions, face, clothing weave, buttons, seams and wrinkles. The neutral light gray studio background, soft even lighting, exposure and white balance remain stable. One continuous take with no camera cuts or zooms.\noverall_soundscape:\nSoft natural sneaker footsteps on the studio floor. No speech or music.",
+  "width": 480,
+  "height": 736,
+  "seed": 41729,
+  "steps": 8,
+  "sampler": "er_sde",
+  "scheduler": "simple",
+  "low_vram_policy": "native PREPARE_SAMPLING force_offload=True",
+  "window_frames": 56,
+  "context_frames": 22,
+  "frames": 158,
+  "fps": 24,
+  "runs": [
+    {
+      "window": 0,
+      "trim_frames": 0,
+      "delivered_frames": 56,
+      "guide_seconds": 0.7218384529987816,
+      "sampling_seconds": 63.858894653996686,
+      "refine_seconds": 0.0,
+      "total_seconds": 64.58223381699645,
+      "guide_peak_mib": 2879.2041015625,
+      "sampling_peak_mib": 2812.39306640625,
+      "refine_peak_mib": 514.5,
+      "process_max_rss_mib": 28199.2109375
+    },
+    {
+      "window": 1,
+      "trim_frames": 22,
+      "delivered_frames": 90,
+      "guide_seconds": 0.0023077799996826798,
+      "sampling_seconds": 72.99632151098922,
+      "refine_seconds": 0.0,
+      "total_seconds": 73.00012175900338,
+      "guide_peak_mib": 514.5,
+      "sampling_peak_mib": 2127.45068359375,
+      "refine_peak_mib": 514.5,
+      "process_max_rss_mib": 28201.48828125
+    },
+    {
+      "window": 2,
+      "trim_frames": 22,
+      "delivered_frames": 124,
+      "guide_seconds": 0.0012925549963256344,
+      "sampling_seconds": 73.72627275300329,
+      "refine_seconds": 0.0,
+      "total_seconds": 73.72906093299389,
+      "guide_peak_mib": 514.5,
+      "sampling_peak_mib": 2127.45068359375,
+      "refine_peak_mib": 514.5,
+      "process_max_rss_mib": 28201.51171875
+    },
+    {
+      "window": 3,
+      "trim_frames": 22,
+      "delivered_frames": 158,
+      "guide_seconds": 0.0012655059981625527,
+      "sampling_seconds": 73.27050298500399,
+      "refine_seconds": 0.0,
+      "total_seconds": 73.27332079599728,
+      "guide_peak_mib": 514.5,
+      "sampling_peak_mib": 2127.45068359375,
+      "refine_peak_mib": 514.5,
+      "process_max_rss_mib": 28201.57421875
+    }
+  ],
+  "stage": "complete",
+  "export_seconds": 16.48063719199854,
+  "export_peak_allocated_mib": 3541.0634765625
+}

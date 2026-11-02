@@ -1,0 +1,55 @@
+{
+  "status": "passed",
+  "files_checked": 75,
+  "total_bytes": 16379577,
+  "findings": [],
+  "image_metadata": [
+    {
+      "path": "docs/media/character-swap-inputs.png",
+      "metadata": {}
+    },
+    {
+      "path": "docs/media/character-swap-male-faces.jpg",
+      "metadata": {}
+    },
+    {
+      "path": "docs/media/character-swap-mask.png",
+      "metadata": {}
+    },
+    {
+      "path": "docs/media/character-swap-overview.jpg",
+      "metadata": {}
+    },
+    {
+      "path": "docs/media/character-swap-resolutions.jpg",
+      "metadata": {}
+    },
+    {
+      "path": "docs/media/motion-480-comparison.jpg",
+      "metadata": {}
+    },
+    {
+      "path": "docs/media/static-comparison.jpg",
+      "metadata": {}
+    },
+    {
+      "path": "examples/inputs/H3_Ref2V_Color_Reference.png",
+      "metadata": {}
+    },
+    {
+      "path": "examples/inputs/H3_TextureLab_Body_Reference.png",
+      "metadata": {}
+    },
+    {
+      "path": "examples/inputs/H3_TextureLab_Target_Identity.png",
+      "metadata": {}
+    },
+    {
+      "path": "examples/inputs/H3_TextureLab_Target_Man.png",
+      "metadata": {}
+    }
+  ],
+  "media_policy": "Only allowlisted generated fully clothed synthetic adults, technical crops, own generated clips, and inspected ComfyUI screenshots. User phone photo and private workflow/media excluded.",
+  "text_policy": "No local identity/path, GPU UUID, credential pattern or unexpected email found. This is a scoped source/metadata audit, not a guarantee against every possible identifier.",
+  "commit_email_policy": "Keep existing GitHub account settings and use its default commit identity, as explicitly requested by the account owner after the email privacy choice was explained."
+}

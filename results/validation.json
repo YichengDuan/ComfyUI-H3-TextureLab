@@ -1,0 +1,18 @@
+{
+  "unit_tests": {
+    "passed": 6,
+    "scope": [
+      "window arithmetic and cropped tails",
+      "exact AV safetensors round-trip",
+      "overlap/history slicing",
+      "owned decoded-frame storage",
+      "source/mask/audio alignment including 44100Hz tail padding"
+    ]
+  },
+  "character_swap_gui_api_roundtrip": {
+    "nodes": 42,
+    "input_differences": 0
+  },
+  "actual_gpu_tests": "See character-swap.json; actual native ComfyUI graph execution, including SAM and export.",
+  "generated_audio_decode": "not implemented; source audio mux supported"
+}

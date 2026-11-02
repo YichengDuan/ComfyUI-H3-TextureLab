@@ -1,0 +1,14 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.cache/
+*.safetensors
+*.ckpt
+*.pt
+*.pth
+*.npy
+*.npz
+*.part
+models/
+H3-TextureLab-Cache/
+local-experiments/

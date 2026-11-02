@@ -1,0 +1,106 @@
+{
+  "docs/media/motion-768-refine.mp4": {
+    "decoded_frames": 158,
+    "width": 768,
+    "height": 1152,
+    "fps": "24/1",
+    "audio_streams": 0,
+    "metadata": {
+      "major_brand": "isom",
+      "minor_version": "512",
+      "compatible_brands": "isomiso2avc1mp41",
+      "encoder": "Lavf61.1.100"
+    }
+  },
+  "docs/media/character-swap-warmup-576.mp4": {
+    "decoded_frames": 56,
+    "width": 576,
+    "height": 864,
+    "fps": "24/1",
+    "audio_streams": 1,
+    "metadata": {
+      "major_brand": "isom",
+      "minor_version": "512",
+      "compatible_brands": "isomiso2avc1mp41",
+      "encoder": "Lavf61.1.100"
+    }
+  },
+  "docs/media/character-swap-480.mp4": {
+    "decoded_frames": 56,
+    "width": 480,
+    "height": 736,
+    "fps": "24/1",
+    "audio_streams": 1,
+    "metadata": {
+      "major_brand": "isom",
+      "minor_version": "512",
+      "compatible_brands": "isomiso2avc1mp41",
+      "encoder": "Lavf61.1.100"
+    }
+  },
+  "docs/media/character-swap-768.mp4": {
+    "decoded_frames": 56,
+    "width": 768,
+    "height": 1152,
+    "fps": "24/1",
+    "audio_streams": 1,
+    "metadata": {
+      "major_brand": "isom",
+      "minor_version": "512",
+      "compatible_brands": "isomiso2avc1mp41",
+      "encoder": "Lavf61.1.100"
+    }
+  },
+  "docs/media/character-swap-male-control.mp4": {
+    "decoded_frames": 39,
+    "width": 480,
+    "height": 736,
+    "fps": "24/1",
+    "audio_streams": 1,
+    "metadata": {
+      "major_brand": "isom",
+      "minor_version": "512",
+      "compatible_brands": "isomiso2avc1mp41",
+      "encoder": "Lavf61.1.100"
+    }
+  },
+  "docs/media/motion-480-refine.mp4": {
+    "decoded_frames": 158,
+    "width": 480,
+    "height": 736,
+    "fps": "24/1",
+    "audio_streams": 0,
+    "metadata": {
+      "major_brand": "isom",
+      "minor_version": "512",
+      "compatible_brands": "isomiso2avc1mp41",
+      "encoder": "Lavf61.1.100"
+    }
+  },
+  "examples/inputs/H3_TextureLab_Motion_Source_480.mp4": {
+    "decoded_frames": 158,
+    "width": 480,
+    "height": 736,
+    "fps": "24/1",
+    "audio_streams": 0,
+    "metadata": {
+      "major_brand": "isom",
+      "minor_version": "512",
+      "compatible_brands": "isomiso2avc1mp41",
+      "encoder": "Lavf61.1.100"
+    }
+  },
+  "examples/inputs/H3_TextureLab_Motion_Source_768.mp4": {
+    "decoded_frames": 158,
+    "width": 768,
+    "height": 1152,
+    "fps": "24/1",
+    "audio_streams": 0,
+    "metadata": {
+      "minor_version": "512;512",
+      "major_brand": "isom;isom",
+      "compatible_brands": "isomiso2avc1mp41;isomiso2avc1mp41",
+      "encoder": "Lavf63.1.102"
+    }
+  }
+}

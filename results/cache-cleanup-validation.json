@@ -46,5 +46,24 @@
       "error": null,
       "node_errors": {}
     }
+  },
+  "live_comfyui_gpu_acceptance": {
+    "success": true,
+    "frames": 56,
+    "canvas": [
+      480,
+      736
+    ],
+    "windows": 2,
+    "cleanup_cache": true,
+    "observed_run_cache_before_cleanup": true,
+    "new_cache_directories_observed": 1,
+    "new_run_cache_removed": true,
+    "preexisting_cache_directories_retained": true,
+    "delivered_video_decodes": true,
+    "delivered_audio_decodes": true,
+    "elapsed_seconds": 220.3005823669955,
+    "reference": "Previously generated Qwen adult male portrait; source is previously generated synthetic-adult H3 motion video.",
+    "test_scope": "Real native Character Swap GPU workflow on the local ComfyUI server, followed by verified save and per-run cleanup."
   }
 }

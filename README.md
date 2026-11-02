@@ -110,7 +110,7 @@ Refinement uses the main schedule's final interval, plain original-reference con
 
 If this output/cache directory is on an SSD, these writes contribute to SSD wear. This project has not measured long-term SSD endurance impact. Keep sufficient free space and consider the write workload when choosing the output drive; storage speed can also affect caching and export time.
 
-**Completed run caches are not automatically deleted.** After verifying the final saved video and confirming that no active generation, continuation or recovery needs a run's files, you can manually delete that run's cache directory. Do not delete caches used by a running job. Cleanup reclaims disk space; it does not undo writes already performed.
+**Completed run caches are not automatically deleted.** After verifying that the final saved video is stored outside that cache directory and confirming that no active generation, continuation or recovery needs a run's files, you can manually delete that run's cache directory. Do not delete caches used by a running job. Cleanup reclaims disk space; it does not undo writes already performed.
 
 ## Important limits
 

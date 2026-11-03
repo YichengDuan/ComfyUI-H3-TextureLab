@@ -4,7 +4,7 @@ import { api } from "../../scripts/api.js";
 app.registerExtension({
     name: "H3TextureLab.WindowPreview",
     async beforeRegisterNodeDef(nodeType, nodeData) {
-        if (nodeData.name !== "H3TextureWindowPreview") return;
+        if (!["H3TextureWindowPreview", "H3TextureStoredWindowPreview"].includes(nodeData.name)) return;
         const previous = nodeType.prototype.onExecuted;
         nodeType.prototype.onExecuted = function (message) {
             previous?.apply(this, arguments);

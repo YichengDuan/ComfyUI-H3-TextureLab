@@ -1,0 +1,15 @@
+{
+  "runs": [
+    {
+      "cache_mode": "ram",
+      "cleanup_cache": false,
+      "success": true,
+      "frames": 56,
+      "audio_decodes": true,
+      "new_cache_directories_retained": 0,
+      "saved_file": "cleanup-smoke_00001_.mp4"
+    }
+  ],
+  "repeat_with_same_executor": true,
+  "fixture": "Synthetic CPU latents and VAE, actual native loop/export/save nodes; no H3 inference."
+}

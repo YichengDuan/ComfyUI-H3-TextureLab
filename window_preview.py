@@ -92,7 +92,8 @@ class H3TextureWindowPreview:
         if preview_source:
             source,details['source']=encode_preview(source_frames[:valid],preview_scale,mask[:valid],first)
         if preview_generated:
-            video=list(av_latent['samples'].unbind())[0]
+            samples=av_latent['samples']
+            video=list(samples.unbind() if hasattr(samples,'unbind') else samples)[0]
             decoded=vae.decode(video).detach().cpu()
             if decoded.ndim==5:decoded=decoded.reshape(-1,*decoded.shape[-3:])
             # VAE grid ends can occasionally be one pixel-frame short; preview
@@ -108,3 +109,21 @@ class H3TextureWindowPreview:
         return {'result':(av_latent,),'ui':{'h3_texture_window_preview':[info]}}
 
 NODE_CLASS_MAPPINGS={'H3TextureWindowPreview':H3TextureWindowPreview}
+
+
+class H3TextureStoredWindowPreview(H3TextureWindowPreview):
+    DESCRIPTION = "Preview the stored window after Join Match; passes its cache state through unchanged."
+    @classmethod
+    def INPUT_TYPES(cls):
+        schema=super().INPUT_TYPES()
+        schema['required']={'state':('H3_TEXTURE_STATE',),**{k:v for k,v in schema['required'].items() if k!='av_latent'}}
+        return schema
+    RETURN_TYPES=('H3_TEXTURE_STATE',)
+    RETURN_NAMES=('state',)
+    def preview(self,state,vae,source_frames,mask,window,total_windows,preview_source=True,preview_generated=True,preview_scale=.5):
+        if not preview_source and not preview_generated:return (state,)
+        data=state['frames'].load_av(state['av_latent_file']) if preview_generated else {'video':None,'audio':None}
+        result=super().preview({'samples':[data['video'],data['audio']]},vae,source_frames,mask,window,total_windows,preview_source,preview_generated,preview_scale)
+        return {'result':(state,),'ui':result['ui']}
+
+NODE_CLASS_MAPPINGS['H3TextureStoredWindowPreview']=H3TextureStoredWindowPreview

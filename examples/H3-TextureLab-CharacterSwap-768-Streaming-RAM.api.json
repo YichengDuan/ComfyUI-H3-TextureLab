@@ -486,11 +486,11 @@
     "inputs": {
       "accumulate": false,
       "output_value": [
-        "store",
+        "preview",
         0
       ],
       "next_iteration_value": [
-        "store",
+        "preview",
         0
       ]
     }
@@ -605,7 +605,7 @@
     "class_type": "H3TextureAppendWindow",
     "inputs": {
       "av_latent": [
-        "preview",
+        "sample",
         0
       ],
       "vae": [
@@ -639,12 +639,8 @@
     }
   },
   "preview": {
-    "class_type": "H3TextureWindowPreview",
+    "class_type": "H3TextureStoredWindowPreview",
     "inputs": {
-      "av_latent": [
-        "sample",
-        0
-      ],
       "vae": [
         "video_vae",
         0
@@ -667,7 +663,11 @@
       ],
       "preview_source": true,
       "preview_generated": true,
-      "preview_scale": 0.5
+      "preview_scale": 0.5,
+      "state": [
+        "store",
+        0
+      ]
     }
   }
 }

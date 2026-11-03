@@ -209,3 +209,5 @@ Limits: streaming currently requires Linux/POSIX, FFmpeg/FFprobe and a plain unt
 ![Current-window preview component with public synthetic media](docs/media/streaming-window-preview.png)
 
 Validation: [CPU alignment](results/streaming-cpu-validation.json), [actual SAM3 GPU and short Character Swap](results/streaming-gpu-validation.json), [half-size preview playback](results/streaming-preview-validation.json). The screenshot shows an isolated test of the actual preview component, not a full ComfyUI canvas.
+
+For workflows using **Join Match**, use **H3TextureStoredWindowPreview** after Store AV Latent and connect its state output to both End Loop state inputs. This reads the exact cached/corrected video latent and returns the same state. The streaming examples now use this ordering; the earlier sampler-latent preview node remains available for compatibility.

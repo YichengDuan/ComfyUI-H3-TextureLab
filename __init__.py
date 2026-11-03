@@ -124,6 +124,6 @@ NODE_DISPLAY_NAME_MAPPINGS = STREAM_NAMES
 
 from .window_preview import NODE_CLASS_MAPPINGS as PREVIEW_NODES, register_preview_routes
 NODE_CLASS_MAPPINGS.update(PREVIEW_NODES)
-NODE_DISPLAY_NAME_MAPPINGS.update({"H3TextureWindowPreview": "H3 Texture Lab · Current Window Previews · RAM"})
+NODE_DISPLAY_NAME_MAPPINGS.update({"H3TextureWindowPreview": "H3 Texture Lab · Current Window Previews · RAM", "H3TextureStoredWindowPreview": "H3 Texture Lab · Stored Window Previews · RAM"})
 WEB_DIRECTORY = "./web"
 register_preview_routes()

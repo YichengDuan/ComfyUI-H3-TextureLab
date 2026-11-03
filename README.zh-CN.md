@@ -85,3 +85,5 @@ FFmpeg完成解码和缩放后，通过FFV1无损管道交给PyAV，保留原版
 ![使用公开合成人物素材的当前窗口预览组件](docs/media/streaming-window-preview.png)
 
 验证记录：[CPU对齐](results/streaming-cpu-validation.json)、[真实SAM3 GPU和短片人物替换](results/streaming-gpu-validation.json)、[半分辨率预览播放](results/streaming-preview-validation.json)。截图为真实预览组件的隔离测试页面，并非完整ComfyUI画布。
+
+开启 **Join Match** 的工作流请用 **H3TextureStoredWindowPreview**，放在 Store AV Latent 后，把它返回的 state 连接到 End Loop 的两个状态输入。预览读取实际缓存的修正后 video latent，原 state 保持不变。流式示例已改用这一顺序，旧的采样 latent 预览节点仍保留兼容。

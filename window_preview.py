@@ -51,12 +51,12 @@ def register_preview_routes():
             status=206;headers['Content-Range']=f'bytes {start}-{end}/{length}'
         return web.Response(body=data[start:end+1],status=status,content_type='video/mp4',headers=headers)
 
-def encode_preview(frames, scale=.5, mask=None, first=0):
+def encode_preview(frames, scale=.5, mask=None, first=0, display_size=None):
     import comfy.model_management as mm
     if not .125<=scale<=1:raise ValueError('Preview scale must be between 0.125 and 1')
     count=len(frames)-first
     if count<=0:raise ValueError('Preview needs at least one new frame')
-    h,w=frames.shape[1:3];out_h=max(2,round(h*scale)//2*2);out_w=max(2,round(w*scale)//2*2)
+    h,w=display_size or frames.shape[1:3];out_h=max(2,round(h*scale)//2*2);out_w=max(2,round(w*scale)//2*2)
     buffer=io.BytesIO()
     with av.open(buffer,mode='w',format='mp4') as output:
         stream=output.add_stream('libx264',rate=24);stream.width=out_w;stream.height=out_h;stream.pix_fmt='yuv420p'
@@ -75,8 +75,24 @@ def encode_preview(frames, scale=.5, mask=None, first=0):
     data=buffer.getvalue();buffer.close()
     return data,{'width':out_w,'height':out_h,'frames':count,'bytes':len(data)}
 
+def latent2rgb_frames(video, frame_count):
+    """Native H3 linear RGB approximation, with its 1/4/4/4/4 frame clock."""
+    from comfy.latent_formats import MiniMaxH3Video
+    if video.ndim != 5 or video.shape[0] != 1 or video.shape[1] != 24:
+        raise ValueError('H3 preview expects one [1,24,T,H,W] video latent')
+    fmt = MiniMaxH3Video()
+    latent = video.detach().to(device='cpu', dtype=torch.float32)[0].movedim(0, -1)
+    factors = torch.tensor(fmt.latent_rgb_factors, dtype=torch.float32).T
+    bias = torch.tensor(fmt.latent_rgb_factors_bias, dtype=torch.float32)
+    rgb = F.linear(latent, factors, bias).add_(1).mul_(.5).clamp_(0, 1)
+    repeats = torch.tensor([1 if i % 5 == 0 else 4 for i in range(len(rgb))])
+    rgb = torch.repeat_interleave(rgb, repeats, dim=0)
+    if len(rgb) < frame_count:
+        rgb = torch.cat((rgb, rgb[-1:].expand(frame_count-len(rgb), -1, -1, -1)))
+    return rgb[:frame_count]
+
 class H3TextureWindowPreview:
-    DESCRIPTION = "Current source and generated window; excludes carried overlap and model-only tail padding. Preview decoding does not change final output resolution."
+    DESCRIPTION = "Current source and generated window; excludes carried overlap and model-only tail padding. Generated previews use approximate latent2rgb without VAE decoding; final output is unchanged."
     @classmethod
     def INPUT_TYPES(cls):
         return {'required':{'av_latent':('LATENT',),'vae':('VAE',),'source_frames':('IMAGE',),'mask':('MASK',),
@@ -94,13 +110,10 @@ class H3TextureWindowPreview:
         if preview_generated:
             samples=av_latent['samples']
             video=list(samples.unbind() if hasattr(samples,'unbind') else samples)[0]
-            decoded=vae.decode(video).detach().cpu()
-            if decoded.ndim==5:decoded=decoded.reshape(-1,*decoded.shape[-3:])
-            # VAE grid ends can occasionally be one pixel-frame short; preview
-            # holds its last frame, leaving the actual stored AV latent untouched.
-            if len(decoded)<len(source_frames):
-                decoded=torch.cat((decoded,decoded[-1:].expand(len(source_frames)-len(decoded),-1,-1,-1)))
-            generated,details['generated']=encode_preview(decoded[:valid],preview_scale,None,first)
+            decoded=latent2rgb_frames(video, len(source_frames))
+            generated,details['generated']=encode_preview(decoded[:valid],preview_scale,None,first,
+                                                           display_size=source_frames.shape[1:3])
+            details['generated']['method']='latent2rgb'
             del decoded
         token=publish(source,generated)
         urls={name:f'/h3_texture/window_preview/{token}/{name}' for name,data in [('source',source),('generated',generated)] if data is not None}

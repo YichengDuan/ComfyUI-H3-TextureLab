@@ -12,8 +12,16 @@ from aiohttp.test_utils import TestClient,TestServer
 from server import PromptServer
 repo=Path(__file__).resolve().parents[1];spec=importlib.util.spec_from_file_location('window_preview_contract',repo/'window_preview.py');preview=importlib.util.module_from_spec(spec);spec.loader.exec_module(preview)
 torch.set_num_threads(2);torch.manual_seed(91)
+from comfy.latent_formats import MiniMaxH3Video
+clock=torch.zeros(1,24,6,1,1)
+clock[:,0,:,0,0]=torch.arange(6)
+frames=preview.latent2rgb_frames(clock,18)
+expected_indices=torch.tensor([0]+[1]*4+[2]*4+[3]*4+[4]*4+[5])
+fmt=MiniMaxH3Video()
+expected=(expected_indices[:,None]*torch.tensor(fmt.latent_rgb_factors[0])+torch.tensor(fmt.latent_rgb_factors_bias)+1)/2
+assert torch.allclose(frames[:,0,0],expected.clamp(0,1))
 class VAE:
- def decode(self,video):return torch.full((39,64,96,3),.4)
+ def decode(self,video):raise AssertionError('Preview must not decode the VAE')
 latent={'samples':torch.zeros(1,1,24,12,4,6)}
 # unbind()[0] matches the stream shape interface used by the actual AV type.
 images=torch.rand(39,64,96,3);mask=torch.zeros(39,64,96);mask[:,10:50,20:70]=1
@@ -35,10 +43,7 @@ class StoredFrames:
  def load_av(self,name):
   assert name=='corrected-window'
   return {'video':torch.full((1,24,12,4,6),.75),'audio':torch.zeros(1,32,2,65)}
-class StoredVAE:
- def decode(self,video):
-  assert float(video[0,0,0,0,0])==.75, 'Preview must load the stored/corrected latent'
-  return VAE().decode(video)
+class StoredVAE(VAE):pass
 state={'frames':StoredFrames(),'av_latent_file':'corrected-window'}
 stored=preview.H3TextureStoredWindowPreview().preview(state,StoredVAE(),images,mask,entry,2,True,True,.5)
 assert stored['result'][0] is state
@@ -56,6 +61,6 @@ async def main():
   response=await client.get('/h3_texture/window_preview/missing/source');assert response.status==404
   preview.publish(data['source'],data['generated']);assert len(preview._PREVIEWS)==1
   response=await client.get(path);assert response.status==404
- report={'success':True,'preview_scale':.5,'source_and_generated_dimensions':[48,32],'new_frames_per_preview':17,'latent_identity_preserved':True,'stored_corrected_latent_preview_and_state_identity':True,'artificial_tail_frames_excluded':True,'latest_window_only':True,'http_full_range_suffix_missing_eviction_checks_passed':True,'preview_bytes':{k:len(v) for k,v in data.items()},'scope':'Synthetic CPU images and VAE fixture; native MP4 codec and HTTP service. No H3 inference or private imagery.'}
+ report={'success':True,'preview_scale':.5,'source_and_generated_dimensions':[48,32],'new_frames_per_preview':17,'latent_identity_preserved':True,'stored_corrected_latent_preview_and_state_identity':True,'artificial_tail_frames_excluded':True,'latest_window_only':True,'http_full_range_suffix_missing_eviction_checks_passed':True,'preview_bytes':{k:len(v) for k,v in data.items()},'scope':'Synthetic CPU images and native H3 latent2rgb factors; VAE decode forbidden; native MP4 codec and HTTP service. No H3 inference or private imagery.'}
  config.output.parent.mkdir(parents=True,exist_ok=True);config.output.write_text(json.dumps(report,indent=2)+'\n');print(json.dumps(report))
 asyncio.run(main())

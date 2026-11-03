@@ -117,3 +117,13 @@ NODE_CLASS_MAPPINGS={c.__name__:c for c in (H3TextureWindowPlan,H3TextureMotionG
 
 NODE_CLASS_MAPPINGS.update({c.__name__:c for c in (H3TextureFinishVideo,H3TextureLowVRAM,H3TextureSaveVideo)})
 NODE_CLASS_MAPPINGS.update(PERFORMANCE_NODES)
+
+from .streaming import NODE_CLASS_MAPPINGS as STREAM_NODES, NODE_DISPLAY_NAME_MAPPINGS as STREAM_NAMES
+NODE_CLASS_MAPPINGS.update(STREAM_NODES)
+NODE_DISPLAY_NAME_MAPPINGS = STREAM_NAMES
+
+from .window_preview import NODE_CLASS_MAPPINGS as PREVIEW_NODES, register_preview_routes
+NODE_CLASS_MAPPINGS.update(PREVIEW_NODES)
+NODE_DISPLAY_NAME_MAPPINGS.update({"H3TextureWindowPreview": "H3 Texture Lab · Current Window Previews · RAM"})
+WEB_DIRECTORY = "./web"
+register_preview_routes()

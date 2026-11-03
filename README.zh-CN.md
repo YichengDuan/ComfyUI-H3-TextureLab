@@ -71,3 +71,17 @@ Character Swap 示例已经关闭 `first_frame_guide`。如果开启此可选开
 **此模式需要 VAE 解码／重编码。** 正常 H3 窗口的末尾 token 覆盖 4 帧，不能当作 1 帧 raw latent。该模式会解码上一窗口，再通过上游 Motion Context 只重编码最后一帧；无论 `context_source` 如何选择均如此。5/22/39/56 帧仍保留原来的 raw latent 路径。`carry_audio=true` 时，继续携带原有的 18 帧 raw 音频尾部，时间位置根据原始 AV 窗口计算。Character Swap 保持 `carry_audio=false`，继续使用源音频引导。
 
 单帧可提供外观锚点，但运动信息少于较长上下文；仍可能出现动作接缝和 VAE 重建／偏色，尚未证实能解决颜色漂移。验证使用真实上游节点和 CPU 合成 VAE 数据，不代表 H3 画质测试。
+
+## 流式源视频与当前窗口预览
+
+使用新增的 **`H3-TextureLab-CharacterSwap-480-Streaming-RAM.json`** 或 **`...768-Streaming-RAM.json`**，旧工作流保持不变。原生 SAM3.1 multiplex 跟踪器只调用一次，保留连续跟踪状态。准备阶段只统计准确的24fps源帧数，不建立整段RGB张量；跟踪时最多缓存3帧原生像素平面。整片只保留每像素1bit的紧凑人物掩码，空帧恢复和欧氏膨胀逐帧处理。H3只读取当前窗口的图像、展开对应掩码，保持重叠和尾帧／音频补齐对齐。
+
+FFmpeg完成解码和缩放后，通过FFV1无损管道交给PyAV，保留原版准备节点的浮点精度和色度转换，**不生成预处理视频缓存文件**。正常循环顺序只连续解码；如果回访已被缓存淘汰的早期窗口，会重新打开解码器并读取其前缀。读取／跟踪期间中断和最后窗口完成会关闭读取器；采样期间闲置的读取器会在其缓存状态释放时关闭；源文件在任务中途变化会报错。跟踪源帧不包含原版为H3网格预先补上的重复尾帧。
+
+新增 **Current Window Previews · RAM** 在循环内部显示两种预览：**源视频＋人物遮罩**、**当前生成结果**。默认宽、高各为 **0.5倍**，只展示本窗新增帧，不重复展示上下文。预览编码成内存MP4，通过支持HTTP Range的接口播放；全局只保留最新窗口，压缩数据上限64MiB，不额外保存中间MP4。**生成预览仍需先对当前完整分辨率latent做一次VAE解码，再缩小**，可独立关闭以节省这次解码。正式分辨率和保存的latent不变；换到下一窗或服务退出后，旧预览链接失效。
+
+限制：当前流式读取针对Linux/POSIX，要求FFmpeg/FFprobe和普通未裁剪、未设置时间截取的文件型 **Load Video**。前缀截取请用准备节点的 `duration_seconds`；其他裁剪／截取或内存VIDEO包装会明确拒绝，不会悄悄忽略。源音频仍以CPU波形保留，bit-packed掩码随时长增加；当前窗口RGB／MASK、模型和执行器缓存仍占RAM，因此这不是总内存硬上限。检测／跟踪仍在GPU，解码、打包和膨胀在CPU。另：已初始化单人物且 `max_objects=1` 满额时，当前跟踪器本来就跳过新目标检测，所以增大 `detect_interval` 不一定能加速。
+
+![使用公开合成人物素材的当前窗口预览组件](docs/media/streaming-window-preview.png)
+
+验证记录：[CPU对齐](results/streaming-cpu-validation.json)、[真实SAM3 GPU和短片人物替换](results/streaming-gpu-validation.json)、[半分辨率预览播放](results/streaming-preview-validation.json)。截图为真实预览组件的隔离测试页面，并非完整ComfyUI画布。

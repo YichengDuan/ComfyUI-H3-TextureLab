@@ -1,0 +1,65 @@
+{
+  "success": true,
+  "cases": [
+    {
+      "fixture": "cfr30.mp4",
+      "duration": 0.0,
+      "frames": 58,
+      "width": 96,
+      "height": 64,
+      "rgb_exact": true,
+      "audio_common_samples_exact": true,
+      "stream_audio_samples": 115712,
+      "legacy_audio_samples": 115712,
+      "packed_masks_match_native_threshold": true,
+      "expansion_exact": true,
+      "native_wrapper_contract_calls": 1,
+      "scope": "Synthetic frame provider/model contract; no SAM inference"
+    },
+    {
+      "fixture": "cfr30.mp4",
+      "duration": 0.5,
+      "frames": 12,
+      "width": 96,
+      "height": 64,
+      "rgb_exact": true,
+      "audio_common_samples_exact": true,
+      "stream_audio_samples": 24000,
+      "legacy_audio_samples": 24000,
+      "packed_masks_match_native_threshold": true,
+      "expansion_exact": true,
+      "native_wrapper_contract_calls": 1,
+      "scope": "Synthetic frame provider/model contract; no SAM inference"
+    },
+    {
+      "fixture": "vfr.mp4",
+      "duration": 0.0,
+      "frames": 58,
+      "width": 96,
+      "height": 64,
+      "rgb_exact": true,
+      "audio_common_samples_exact": true,
+      "stream_audio_samples": 115712,
+      "legacy_audio_samples": 115712,
+      "packed_masks_match_native_threshold": true,
+      "expansion_exact": true,
+      "native_wrapper_contract_calls": 1,
+      "scope": "Synthetic frame provider/model contract; no SAM inference"
+    },
+    {
+      "fixture": "vfr.mp4",
+      "duration": 0.5,
+      "frames": 12,
+      "width": 96,
+      "height": 64,
+      "rgb_exact": true,
+      "audio_common_samples_exact": true,
+      "stream_audio_samples": 24000,
+      "legacy_audio_samples": 24000,
+      "packed_masks_match_native_threshold": true,
+      "expansion_exact": true,
+      "native_wrapper_contract_calls": 1,
+      "scope": "Synthetic frame provider/model contract; no SAM inference"
+    }
+  ]
+}

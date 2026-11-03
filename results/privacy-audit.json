@@ -1,7 +1,7 @@
 {
   "status": "passed",
-  "files_checked": 94,
-  "total_bytes": 16843358,
+  "files_checked": 108,
+  "total_bytes": 17109435,
   "findings": [],
   "image_metadata": [
     {
@@ -30,6 +30,10 @@
     },
     {
       "path": "docs/media/static-comparison.jpg",
+      "metadata": {}
+    },
+    {
+      "path": "docs/media/streaming-window-preview.png",
       "metadata": {}
     },
     {

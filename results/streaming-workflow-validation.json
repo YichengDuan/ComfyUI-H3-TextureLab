@@ -1,0 +1,12 @@
+{
+  "H3-TextureLab-CharacterSwap-480-Streaming-RAM.api.json": {
+    "valid": true,
+    "error": null,
+    "node_errors": {}
+  },
+  "H3-TextureLab-CharacterSwap-768-Streaming-RAM.api.json": {
+    "valid": true,
+    "error": null,
+    "node_errors": {}
+  }
+}

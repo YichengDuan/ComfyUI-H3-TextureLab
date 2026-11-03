@@ -1,0 +1,59 @@
+{
+  "real_sam_gpu_tests": [
+    {
+      "source_frames": 56,
+      "width": 480,
+      "height": 736,
+      "native_mask_pixel_agreement": 1.0,
+      "stream_tracking_seconds": 7.195487739998498,
+      "compact_tracking": {
+        "source_frames": 56,
+        "width": 480,
+        "height": 736,
+        "empty_tracking_frames": [],
+        "recovered_frames": [],
+        "packed_mask_bytes": 2472960,
+        "rgb_cache_limit_frames": 3,
+        "peak_tracking_native_frame_cache_bytes": 1695744,
+        "native_tracker_calls": 1,
+        "tracker_state_reset_between_frames": false
+      }
+    },
+    {
+      "source_frames": 50,
+      "width": 480,
+      "height": 736,
+      "native_mask_pixel_agreement": 1.0,
+      "stream_tracking_seconds": 6.456007107990445,
+      "compact_tracking": {
+        "source_frames": 50,
+        "width": 480,
+        "height": 736,
+        "empty_tracking_frames": [],
+        "recovered_frames": [],
+        "packed_mask_bytes": 2208000,
+        "rgb_cache_limit_frames": 3,
+        "peak_tracking_native_frame_cache_bytes": 1695744,
+        "native_tracker_calls": 1,
+        "tracker_state_reset_between_frames": false
+      }
+    }
+  ],
+  "scope": "Public fully clothed synthetic motion fixture; actual SAM3.1 GPU inference. The 50-frame test compares against a native tracker processing all 56 padded frames. Timings are not controlled cold/warm speed comparisons.",
+  "public_character_swap": {
+    "success": true,
+    "windows": 2,
+    "frames": 56,
+    "audio": true,
+    "source_and_generated_preview_dimensions": [
+      240,
+      368
+    ],
+    "preview_frames": [
+      39,
+      17
+    ],
+    "preview_scale": 0.5
+  },
+  "private_media_included": false
+}

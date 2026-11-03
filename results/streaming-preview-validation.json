@@ -1,0 +1,18 @@
+{
+  "success": true,
+  "preview_scale": 0.5,
+  "source_and_generated_dimensions": [
+    48,
+    32
+  ],
+  "new_frames_per_preview": 17,
+  "latent_identity_preserved": true,
+  "artificial_tail_frames_excluded": true,
+  "latest_window_only": true,
+  "http_full_range_suffix_missing_eviction_checks_passed": true,
+  "preview_bytes": {
+    "source": 3838,
+    "generated": 1965
+  },
+  "scope": "Synthetic CPU images and VAE fixture; native MP4 codec and HTTP service. No H3 inference or private imagery."
+}

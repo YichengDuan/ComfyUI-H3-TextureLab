@@ -211,3 +211,7 @@ Limits: streaming currently requires Linux/POSIX, FFmpeg/FFprobe and a plain unt
 Validation: [CPU alignment](results/streaming-cpu-validation.json), [actual SAM3 GPU and short Character Swap](results/streaming-gpu-validation.json), [half-size preview playback](results/streaming-preview-validation.json). The screenshot shows an isolated test of the actual preview component, not a full ComfyUI canvas.
 
 For workflows using **Join Match**, use **H3TextureStoredWindowPreview** after Store AV Latent and connect its state output to both End Loop state inputs. This reads the exact cached/corrected video latent and returns the same state. The streaming examples now use this ordering; the earlier sampler-latent preview node remains available for compatibility.
+
+### End-of-run garbage collection
+
+Every ComfyUI prompt now runs Python GC and ComfyUI's accelerator allocator cleanup in a `finally` hook, including success, errors and UI interruption. Streaming readers used by that run are closed; cached readers reopen on their next read. Model weights, node-output caches, saved files, recovery latents and the latest previews remain available. This does not free tensors still referenced by caches, and cannot run after an OS OOM kill, SIGKILL or power loss. Restart ComfyUI after installing this update.

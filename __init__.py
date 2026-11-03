@@ -127,3 +127,6 @@ NODE_CLASS_MAPPINGS.update(PREVIEW_NODES)
 NODE_DISPLAY_NAME_MAPPINGS.update({"H3TextureWindowPreview": "H3 Texture Lab · Current Window Previews · RAM", "H3TextureStoredWindowPreview": "H3 Texture Lab · Stored Window Previews · RAM"})
 WEB_DIRECTORY = "./web"
 register_preview_routes()
+
+from .run_cleanup import install as install_run_cleanup
+install_run_cleanup()

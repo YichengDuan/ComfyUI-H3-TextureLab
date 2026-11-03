@@ -159,6 +159,8 @@ class FrameSequence:
         first, end, step = key.indices(len(self))
         if step != 1 or not 0 < end-first <= self.capacity:
             raise ValueError('A streaming read must fit the bounded frame cache')
+        from .run_cleanup import track_reader
+        track_reader(self)
         with self.lock:
             self.source.verify()
             try:

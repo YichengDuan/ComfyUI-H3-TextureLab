@@ -87,3 +87,7 @@ FFmpeg完成解码和缩放后，通过FFV1无损管道交给PyAV，保留原版
 验证记录：[CPU对齐](results/streaming-cpu-validation.json)、[真实SAM3 GPU和短片人物替换](results/streaming-gpu-validation.json)、[半分辨率预览播放](results/streaming-preview-validation.json)。截图为真实预览组件的隔离测试页面，并非完整ComfyUI画布。
 
 开启 **Join Match** 的工作流请用 **H3TextureStoredWindowPreview**，放在 Store AV Latent 后，把它返回的 state 连接到 End Loop 的两个状态输入。预览读取实际缓存的修正后 video latent，原 state 保持不变。流式示例已改用这一顺序，旧的采样 latent 预览节点仍保留兼容。
+
+### 每次任务结束后 GC
+
+每次 ComfyUI 任务通过 `finally` 执行 Python GC 和 ComfyUI 加速器空闲缓存清理，覆盖成功、报错和界面手动停止。关闭本次使用的流式读取器，下次读取时自动重新打开。保留模型权重、节点输出缓存、已保存文件、恢复用 latent 和最新预览；仍被缓存引用的张量不会因此释放。系统 OOM 强杀、SIGKILL 或断电无法执行清理。更新后需重启 ComfyUI。
